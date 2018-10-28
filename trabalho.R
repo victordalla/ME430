@@ -1,10 +1,10 @@
-setwd('~/Documents/UNICAMP/Disciplinas/Caio/ME430/')
-
 library(readr)
 library(readxl)
 library(dplyr)
+library(tidyr)
 library(magrittr)
 library(ggplot2)
+
 
 # leitura dos dados
 questionario <- read_csv2('./dados/2017_quest.txt')
@@ -22,17 +22,29 @@ fase1 <- read_csv2('./dados/Fase1TipoQ.csv',
 opcoes <- read_xls('./dados/Opcoes.xls')
 
 
-# exploração
-tmp <- fase1 %>% left_join(questionario) %>% 
-  left_join(conv_matr)
+# estimar a média do TOTAL
+dados <- fase1 %>% #left_join(conv_matr) %>% 
+  left_join(opcoes) %>% 
+  left_join(questionario)
+dados$CONVOCADO %<>% replace_na(0)
+dados$MATRICULADO %<>% replace_na(0)
+dados$opc1 %<>% replace_na(0)
+dados$opc1d %<>% replace_na('INFO INDISPONIVEL')
+dados$opc2 %<>% replace_na(0)
+dados$opc2d %<>% replace_na('INFO INDISPONIVEL')
 
+# DADOS DUPLICADOS APÓS JOIN!!!
+tmp <- fase1 %>% left_join(conv_matr)
+duplicados <- filter(tmp, duplicated(tmp$EMPCT))
+  
 
-VarianciasDosEstratos <- function(...) {
-  group_by(tmp, ...) %>% 
+VarianciasDosEstratos <- function(dados, ...) {
+  media <- mean(dados$TOTAL)
+  group_by(dados, ...) %>% 
     summarise(mean = mean(TOTAL), sd = sd(TOTAL), n = n()) %>% 
     (function(df) {
       list(sigma_d = sum(df$n * var(df$mean)) / sum(df$n), 
-           sigma_e = sum(df$n * (df$mean-mean(tmp$TOTAL))^2) / sum(df$n))
+           sigma_e = sum(df$n * (df$mean-media)^2) / sum(df$n))
     })
 }
 
