@@ -22,8 +22,14 @@ fase1 <- read_csv2('./dados/Fase1TipoQ.csv',
 opcoes <- read_xls('./dados/Opcoes.xls')
 
 
+
+# DADOS DUPLICADOS 
+duplicated(conv_matr$EMPCT) %>% sum()
+duplicated(conv_matr) %>% sum()
+conv_matr %<>% subset(!duplicated(conv_matr$EMPCT))
+
 # estimar a média do TOTAL
-dados <- fase1 %>% #left_join(conv_matr) %>% 
+dados <- fase1 %>% left_join(conv_matr) %>% 
   left_join(opcoes) %>% 
   left_join(questionario)
 dados$CONVOCADO %<>% replace_na(0)
@@ -33,10 +39,6 @@ dados$opc1d %<>% replace_na('INFO INDISPONIVEL')
 dados$opc2 %<>% replace_na(0)
 dados$opc2d %<>% replace_na('INFO INDISPONIVEL')
 
-# DADOS DUPLICADOS APÓS JOIN!!!
-tmp <- fase1 %>% left_join(conv_matr)
-duplicados <- filter(tmp, duplicated(tmp$EMPCT))
-  
 
 VarianciasDosEstratos <- function(dados, ...) {
   media <- mean(dados$TOTAL)
