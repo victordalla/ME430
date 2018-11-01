@@ -1,0 +1,63 @@
+---
+output: 
+  pdf_document:
+    template: template.tex 
+bibliography: bibliography.bib
+papersize: a4paper
+fontsize: 11pt
+documentclass: article
+geometry: margin=2cm
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, 
+                      message = FALSE,
+                      warning = FALSE,
+                      tidy.opts = list(width.cutoff = 60),
+                      tidy = TRUE)
+options(OutDec = ",", 
+        knitr.table.format = "latex", 
+        xtable.comment = FALSE)
+```
+
+```{r lib}
+
+```
+
+
+
+\begin{titlepage} 
+
+\begin{center} 
+{\large Universidade Estadual de Campinas}\\[0.2cm] 
+{\large Instituto de Matemática, Estatística e Computação Científica}\\[0.2cm] 
+{\large Departamento de Estatística - MEXXX}\\[4cm]
+
+{\bf \huge Título: }\\
+{\bf \Large Subtítulo}\\[6cm]
+
+
+{\large Grupo}\\[0.2cm]
+{\large Victor 206493, Lixo 123456}\\[0.2cm]
+{\large Prof. Dr. cuzao}\\[6cm]
+
+{\large Campinas}\\[0.2cm]
+{\large 2018}
+\end{center}
+
+\end{titlepage}
+
+
+\begin{abstract}
+Texto resumo.
+\end{abstract}
+
+
+# Seção 1
+
+É possível referenciar com 2 estilos. O primeiro é feito com referências no Markdown [@allen2007likert]. O segundo é feito com referências do Latex \cite{derrick2017comparing}.
+
+
+\bibliographystyle{plain}
+\bibliography{bibliography}
+
