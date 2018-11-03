@@ -43,9 +43,10 @@ dados$opc2d %<>% replace_na('INFO INDISPONIVEL')
 VarianciasDosEstratos <- function(dados, ...) {
   media <- mean(dados$TOTAL)
   group_by(dados, ...) %>% 
-    summarise(mean = mean(TOTAL), sd = sd(TOTAL), n = n()) %>% 
+    mutate(mean = mean(TOTAL), sd = sd(TOTAL), n = n()) %>% 
     (function(df) {
-      list(sigma_d = sum(df$n * var(df$mean)) / sum(df$n), 
+      list(sigma_media = var(df$TOTAL), 
+           sigma_d = sum(df$n * var(df$mean)) / sum(df$n), 
            sigma_e = sum(df$n * (df$mean-media)^2) / sum(df$n))
     })
 }

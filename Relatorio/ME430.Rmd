@@ -22,10 +22,6 @@ options(OutDec = ",",
         xtable.comment = FALSE)
 ```
 
-```{r lib}
-
-```
-
 
 \begin{titlepage} 
 
@@ -51,11 +47,61 @@ options(OutDec = ",",
 
 # Introdução
 
+```{r lib}
+library(readr)
+library(readxl)
+library(dplyr)
+library(tidyr)
+library(magrittr)
+library(ggplot2)
+```
+
+```{r leitura}
+questionario <- read_csv2('../dados/2017_quest.txt')
+questionario$APROVA1 <- ifelse(is.na(questionario$APROVA1), 0, 1)
+colnames(questionario)[1] <- 'EMPCT'
+
+conv_matr <- read_csv2('../dados/ConvocadosMatriculados.csv')
+conv_matr$CONVOCADO <- ifelse(is.na(conv_matr$CONVOCADO), 0, 1)
+conv_matr$MATRICULADO <- ifelse(is.na(conv_matr$MATRICULADO), 0, 1)
+
+fase1 <- read_csv2('../dados/Fase1TipoQ.csv', 
+                   col_types = cols_only('EMPCT' = col_integer(), 
+                                         'TOTAL' = col_integer()))
+
+opcoes <- read_xls('../dados/Opcoes.xls')
+
+# DADOS DUPLICADOS 
+conv_matr %<>% subset(!duplicated(conv_matr$EMPCT))
+```
+
+
+Este trabalho consiste na aplicação de técnicas aprendidas na disciplina ME430 - Técnicas de Amostragem - em um conjunto de dados da COMVEST. Esse conjunto de dados possui informações de candidatos ao vestibular 2017 e seus desempenhos nele. O objetivo é estimar i) a média da pontuação total de cada cadiadato, ii) a proporção de candidatos que cursaram todo o ensino médio em escola pública e iii) o total de quartos nas casas de todos os candidatos. As subseções *Média*, *Proporção* e *Total* nas seções *Análise Descritiva* e *Análise Inferencial* se referem a, respectivamente, i), ii) e iii).
 
 # Análise Descritiva
 
+## Média
+
+
+## Proporção
+
+
+## Total
+
 
 # Análise Inferencial
+
+## Média
+```{r}
+## Estratificação: Q2, Q3, Q4, Q7, Q14
+dados$Q7[dados$Q7 > 1] <- 2
+```
+
+
+## Proporção
+
+
+## Total
 
 
 # Conlcusões
