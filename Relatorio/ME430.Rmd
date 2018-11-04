@@ -75,12 +75,54 @@ opcoes <- read_xls('../dados/Opcoes.xls')
 conv_matr %<>% subset(!duplicated(conv_matr$EMPCT))
 ```
 
+```{r estrato}
+VarianciasDosEstratos <- function(dados, ...) {
+  media <- mean(dados$TOTAL)
+  group_by(dados, ...) %>% 
+    mutate(mean = mean(TOTAL), sd = sd(TOTAL), n = n()) %>% 
+    (function(df) {
+      list(var_media = var(df$TOTAL), 
+           var_d = sum(df$n * var(df$mean)) / sum(df$n), 
+           var_e = sum(df$n * (df$mean-media)^2) / sum(df$n))
+    })
+}
+```
 
-Este trabalho consiste na aplicação de técnicas aprendidas na disciplina ME430 - Técnicas de Amostragem - em um conjunto de dados da COMVEST. Esse conjunto de dados possui informações de candidatos ao vestibular 2017 e seus desempenhos nele. O objetivo é estimar i) a média da pontuação total de cada cadiadato, ii) a proporção de candidatos que cursaram todo o ensino médio em escola pública e iii) o total de quartos nas casas de todos os candidatos. As subseções *Média*, *Proporção* e *Total* nas seções *Análise Descritiva* e *Análise Inferencial* se referem a, respectivamente, i), ii) e iii).
+
+Este trabalho consiste na aplicação de técnicas aprendidas na disciplina ME430 - Técnicas de Amostragem - em um conjunto de dados da COMVEST. Esse conjunto de dados possui informações de `r nrow(fase1)` candidatos ao vestibular 2017 e seus desempenhos nele. O objetivo é estimar i) a média da pontuação total de cada cadiadato, ii) a proporção de candidatos que cursaram todo o ensino médio em escola pública e iii) o total de quartos nas casas de todos os candidatos. As subseções *Média*, *Proporção* e *Total* nas seções *Análise Descritiva* e *Análise Inferencial* se referem a, respectivamente, i), ii) e iii). As amostragens realizadas foram artificiais, visto que há acesso às informações de todos os elementos da população (candidatos ao vestibular).
 
 # Análise Descritiva
 
 ## Média
+
+```{r amostra-media}
+dados_media <- fase1 %>% left_join(conv_matr) %>% 
+  left_join(opcoes) %>% 
+  left_join(questionario)
+dados_media$CONVOCADO %<>% replace_na(0)
+dados_media$MATRICULADO %<>% replace_na(0)
+dados_media$opc1 %<>% replace_na(0)
+dados_media$opc1d %<>% replace_na('INFO INDISPONIVEL')
+dados_media$opc2 %<>% replace_na(0)
+dados_media$opc2d %<>% replace_na('INFO INDISPONIVEL')
+
+tam_amostra <- 100
+amostra_media <- sample_n(dados_media, tam_amostra)
+amostra_media$Q7[amostra_media$Q7 > 1] <- 2
+```
+
+```{r analise-descritiva-media}
+stats <- VarianciasDosEstratos(amostra_media, Q2, Q3, Q4, Q7, Q14)
+erro <- 5
+```
+
+Inicialmente, para estimar $\mu$, a pontuação média de todos os candidatos na 1ª fase, foi coletada uma amostra piloto de tamanho `r tam_amostra` a fim de estimar a variância $\sigma_{\mu}^2 = \frac{1}{N} \sum_{i=1}^Ny_i$ da pontuação $y_i$ dos candidatos, onde $N$ é o tamanho da população (`r nrow(fase1)`), e simular estratificações nessa amostra, buscando determinar o plano amostral mais adequado.
+
+A amostra piloto resultou em uma estimativa de $\hat{s_{\mu}^2} = `r stats[['var_media']]`$ para $s_{\mu}^2 = \frac{n\sigma^2}{n-1}$. De posse dessa informação, para realizar uma amostragem aleatória simples sem reposição (AASs), com um erro de estimativa $\delta = `r erro`$, é preciso um tamanho de amostra $n$ de pelo menos $\Big(\frac{\delta^2}{\hat{s^2}z_{0.95}} + \frac{1}{N}\Big) ^ {-1}$ para garantir que $P(|\mu - \hat{\mu}| \geq \delta) \geq 0.95$ $\cite{bolfarine2005elementos}$, onde $z_{0.95}$ é o 95-quantil da normal padrão. Portanto, para os dados coletados, são necessárias pelo menos `r ceiling(1 / (erro / (stats$var_media * (qnorm(0.95)^2)) + 1/nrow(fase1)))` unidades amostrais.
+
+Por outro lado, uma amostragem estratificada (AE) com alocação proporcional (AP) e $H$ estratos, descritos a seguir, requer $\frac{z_{0.95}^2}{\delta^2} \sum_{i=1}^H\frac{N_h}{N} \hat{\sigma^2}$ (OU SERIA S^2 AQUI?) para garantir que $P(|\mu - \hat{\mu}| \geq \delta) \geq 0.95$ $\cite{bolfarine2005elementos}$, onde $\delta = 5$, $N_h$ é o tamanho populacional do h-ésimo estrato e $\hat{\sigma_h^2}$ é a estimativa da variância da pontuação do h-ésimo estrato. Para os dados observados, isso significa que são necessárias XX unidades amostrais, número menor que no caso AASs.
+
+É possível tornar a amostragem ainda mais robusta, utilizando a alocação ótima de Neyman (AON), que minimiza a variância da estimativa qunado o custo de amostragem é homogêneo entre os estratos. Usando AON, temos que $n_h = n \frac{N_h\sigma_h}{\sum_{i=1}^HN_h\sigma_h}$. Como $\sigma_h$ não são valores conhecidos, foi usado $\hat{\sigma_h^2}$.
 
 
 ## Proporção
@@ -92,10 +134,6 @@ Este trabalho consiste na aplicação de técnicas aprendidas na disciplina ME43
 # Análise Inferencial
 
 ## Média
-```{r}
-## Estratificação: Q2, Q3, Q4, Q7, Q14
-dados$Q7[dados$Q7 > 1] <- 2
-```
 
 
 ## Proporção
