@@ -49,7 +49,6 @@ options(OutDec = ",",
 
 ```{r lib}
 library(readr)
-library(readxl)
 library(dplyr)
 library(tidyr)
 library(magrittr)
@@ -69,7 +68,7 @@ fase1 <- read_csv2('../dados/Fase1TipoQ.csv',
                    col_types = cols_only('EMPCT' = col_integer(), 
                                          'TOTAL' = col_integer()))
 
-opcoes <- read_xls('../dados/Opcoes.xls')
+opcoes <- read_csv2('../dados/Opcoes.csv')
 
 # DADOS DUPLICADOS 
 conv_matr %<>% subset(!duplicated(conv_matr$EMPCT))

@@ -1,5 +1,4 @@
 library(readr)
-library(readxl)
 library(dplyr)
 library(tidyr)
 library(magrittr)
@@ -19,7 +18,7 @@ fase1 <- read_csv2('./dados/Fase1TipoQ.csv',
                    col_types = cols_only('EMPCT' = col_integer(), 
                                          'TOTAL' = col_integer()))
 
-opcoes <- read_xls('./dados/Opcoes.xls')
+opcoes <- read_csv2('./dados/Opcoes.csv')
 
 # Proporcao de alunos de escola pública
 
@@ -33,18 +32,18 @@ H <- 2 # quantidade de extratos
 
 # Amostra piloto 
 
-n_piloto <- c(50, 50)
-# n_piloto <- c(250, 250)
+n_piloto = 150
+n_h_piloto <- W_h * n_piloto # estrato proporcional
 
-amostra_pil_1 <- sample_n(questionario %>% filter(EMPCT %in% pub), n_piloto[1])
-amostra_pil_2 <- sample_n(questionario %>% filter(EMPCT %in% priv), n_piloto[2])
+amostra_pil_1 <- sample_n(questionario %>% filter(EMPCT %in% pub), n_h_piloto[1])
+amostra_pil_2 <- sample_n(questionario %>% filter(EMPCT %in% priv), n_h_piloto[2])
 
 p_piloto <- c(sum(amostra_pil_1$Q4 == 1) / dim(amostra_pil_1)[1],
               sum(amostra_pil_2$Q4 == 1) / dim(amostra_pil_2)[1])
 
-s2hat_pil <- n_piloto / (n_piloto - 1) * p_piloto * (1 - p_piloto)
+s2hat_pil <- n_h_piloto / (n_h_piloto - 1) * p_piloto * (1 - p_piloto)
 
-varhat_phat_pil <- (1 - n_piloto/N) * s2hat_pil / n_piloto
+varhat_phat_pil <- (1 - n_h_piloto/N) * s2hat_pil / n_h_piloto
 
 
 # Tamanhos amostrais
