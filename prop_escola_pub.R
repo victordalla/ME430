@@ -32,8 +32,8 @@ H <- 2 # quantidade de extratos
 
 # Amostra piloto 
 
-n_piloto = 150
-n_h_piloto <- W_h * n_piloto # estrato proporcional
+n_piloto = 300
+n_h_piloto <- ceiling(W_h * n_piloto) # estrato proporcional
 
 amostra_pil_1 <- sample_n(questionario %>% filter(EMPCT %in% pub), n_h_piloto[1])
 amostra_pil_2 <- sample_n(questionario %>% filter(EMPCT %in% priv), n_h_piloto[2])
@@ -48,13 +48,11 @@ varhat_phat_pil <- (1 - n_h_piloto/N) * s2hat_pil / n_h_piloto
 
 # Tamanhos amostrais
 
-# Slide 30 
-# http://www.ime.unicamp.br/~cnaber/aula_AE%20P2%20Amost%202S%202018.pdf
 delta = 0.01 # erro de estimação DUVIDA!!!
 z_t = qnorm(0.975) # para 0.95 de IC
-n <- 1 / (delta^2/(z_t^2 * sum(W_h * s2hat_pil)) + 1/N)
+n <- ceiling(1 / (delta^2/(z_t^2 * sum(W_h^2 * s2hat_pil)) + 1/N))
 
-n_h <- n * N_h * sqrt(s2hat_pil) / (sum(N_h * sqrt(s2hat_pil)))
+n_h <- ceiling(n * N_h * sqrt(s2hat_pil) / sum(N_h * sqrt(s2hat_pil)))
 
 # Amostragem final
 

@@ -26,7 +26,7 @@ opcoes <- read_csv2('./dados/Opcoes.csv')
 smp <- sample_n(questionario, 500)
 
 smp %>% ggplot(aes(Q32D, Q32C, alpha = 0.2)) + 
-    geom_jitter() + xlab("# Banheiros") + ylab("#  Quartos")
+    geom_jitter() + xlab("# Banheiros") + ylab("# Quartos")
 
 # Deve ser maior que 0.6
 smp %$% fastkendall(.$Q32D, .$Q32C)
