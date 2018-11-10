@@ -81,37 +81,65 @@ N <- nrow(fase1)
 
 
 Este trabalho consiste na aplicação de técnicas aprendidas na disciplina ME430 - Técnicas de Amostragem - em um conjunto de dados da COMVEST. Esse conjunto de dados possui informações de `r N` candidatos ao vestibular 2017 e seus desempenhos nele. O objetivo é estimar i) a média da pontuação total de cada cadiadato, ii) a proporção de candidatos que cursaram todo o ensino médio em escola pública e iii) o total de quartos nas casas de todos os candidatos. 
-A Seção \ref{s.descritiva} contém nossas análises sobre os dados, tanto nas informações que conhecemos no nível populacional, quanto nas obtidas por meio de amostras. Em seguida na Seção \ref{s.inferencia} apresentamos nossas análises, estimadores pontuais das estatísticas de interesse e seus intervalos de confiança. As seções são dividas em subseções para cada estimador, o quais chamamos de, *Média*, *Proporção* e *Total*, respectivamente aos itens i), ii) e iii) da Tarefa.
+A Seção \ref{s.descritiva} contém nossas análises sobre os dados, tanto nas informações que conhecemos no nível populacional, quanto nas obtidas por meio de amostras. Em seguida na Seção \ref{s.inferencia} apresentamos nossas análises, estimadores pontuais das estatísticas de interesse e seus intervalos de confiança. As seções são dividas em subseções para cada estimador, o quais chamamos de, *Média*, *Proporção* e *Total*, respectivamente aos itens i), ii) e iii) da tarefa.
 
 # Análise Descritiva
 \label{s.descritiva}
 
+Tratamos as análises realizas abaixos como indepentes visto que o ambito de cada análise são diferentes, sendo assim, similar ao caso de cada estimação ser realizada por uma empresa diferente.
+
+
 ## Média
 
 
-
-
 ## Proporção
+\label{ss.descr.prop}
+
+```{r prop-descritiva}
+cor_fund1_fund2 <- questionario %$% polychoric(table(.$Q2, .$Q3))$rho
+```
+
+Sabemos que no Brasil o ensino fundamental público possui qualidade inferior que nos setores privados, o mesmo pode ser dito para o ensino médio com exceção de colégios técnicos, militares ou a escolas relacionas a universidades públicas. Tal que, na maior parte da população os alunos frequentam o ensino público por necessidade e não opção. Desta forma, é incomum um aluno alterar do setor público para o privado e vice-versa (FINALIZAR...)
+
+Assim no nível populacional observamos que existe uma correlação de `r cor_fund1_fund2` entre o setor da instuição de um indíviduo em um nível (Ensino Fundamental 1, Ensino Fundalmental 2) ao nível subsequente.
+
+Com essa informações podemos observar que alunos que estudaram o Ensino Fundamental 1 completamente em instituições públicas apresentam frequentaram o Ensino Fundamental 2 público numa proporção diferente do restante dos indivíduos.
+
+```{r plot-ens-fundamental}
+questionario %>% mutate(estrato = (Q2 == 1),
+                        pub = (Q3 == 1)) %>%
+    ggplot(aes(pub)) + geom_bar() + facet_grid(. ~ estrato)
+```
+
 
 
 ## Total
 
+Observamos no nosso banco de dados que temos informações sobre os utensílios domésticos, cômodos das casas e da estrutura familiar dos inscritos no vestibular da COMVEST, como estamos interessados em estimar o total de quartos de uma casa, iremos observar se existe alguma ligação entre a quantidade de banheiros, pessoas da famílias dependentes da mesma renda familiar e quantidade de televisões na casa, visto que normalmente uma casa com muitos quartos possue mais banheiros, uma família com mais dependente dada uma renda familiar pode conter mais quartos e televisões usualmente ficam em cômodos diferentes de uma casa.
+
+
+```{r total-exploratoria}
+
+```
+
+
 ```{r total-descritiva}
 smp <- sample_n(questionario, 200)
 
-smp %>% ggplot(aes(Q32D, Q32C, alpha = 0.2)) + 
-    geom_jitter() + xlab("# Banheiros") + ylab("# Quartos")
+# smp %>% ggplot(aes(Q32D, Q32C, alpha = 0.2)) + 
+#     geom_jitter() + xlab("# Banheiros") + ylab("# Quartos")
 
 # Deve ser maior que 0.6
 # UTILIZAR PACOTE PSYCH QUE O CAIO FALOU NA AULA
-smp %$% fastkendall(.$Q32D, .$Q32C)
-# smp %$% polyserial(.$Q32D, .$Q32C)
+# smp %$% fastkendall(.$Q32D, .$Q32C)
+# http://www.john-uebersax.com/stat/tetra.htm
+# corr <- smp %$% polychoric(table(.$Q15, .$Q32C))$rho
 
 # Deve ser entre 0.5 e 1.3
-(sd(smp$Q32D) / mean(smp$Q32D)) / (sd(smp$Q32C)/mean(smp$Q32C))
+(sd(smp$Q15) / mean(smp$Q15)) / (sd(smp$Q32C)/mean(smp$Q32C))
 
 # Deve ser menor que rho(x, y)
-(sd(smp$Q32D) / mean(smp$Q32D)) / (2 * sd(smp$Q32C)/mean(smp$Q32C))
+(sd(smp$Q15) / mean(smp$Q15)) / (2 * sd(smp$Q32C)/mean(smp$Q32C))
 
 ```
 
@@ -120,7 +148,6 @@ smp %$% fastkendall(.$Q32D, .$Q32C)
 \label{s.inferencia}
 
 ## Média
-
 
 ```{r dados-media}
 dados_media <- fase1 %>% left_join(questionario)
@@ -195,47 +222,71 @@ Por outro lado, uma amostragem aeleatória simples sem reposição (AASs) requer
 \begin{tabular}{l|lll}
 $h$ & $N_h$ & $\hat{\sigma_h^2}$ & $n_h$ \\
 \hline
-0 & `r N_h[1]` & `r stats$var_h[1]` & `r n_h[1]` \\
-1 & `r N_h[2]` & `r stats$var_h[2]` & `r n_h[2]` \\
-2 & `r N_h[3]` & `r stats$var_h[3]` & `r n_h[3]` \\
+1 & `r N_h[1]` & `r stats$var_h[1]` & `r n_h[1]` \\
+2 & `r N_h[2]` & `r stats$var_h[2]` & `r n_h[2]` \\
+3 & `r N_h[3]` & `r stats$var_h[3]` & `r n_h[3]` \\
 4 & `r N_h[4]` & `r stats$var_h[4]` & `r n_h[4]` \\
 \end{tabular}
 \end{table}
 
 ## Proporção
 
-```{r}
+Conforme observado na Subseção \ref{ss.descr.prop} os alunos tem o hábito de se manter no mesmo setor do ensino ao avançar nos níveis de educação, antes de entrar no ensino superior, assim dividiremos nossa população em dois estratos, participantes que cursaram o Ensino Fundamental 1 por completo em escolas públicas, o qual chamaremos de estrato 1 e o estrato 2 com os indivíduos restantes.
 
+```{r prop-inf-piloto}
 # Proporcao de alunos de escola pública
-
 pub <- questionario[questionario$Q3 == 1, ]$EMPCT
 priv <- questionario[questionario$Q3 != 1, ]$EMPCT
 
 N_h <- c(length(pub), length(priv))
-N <- dim(questionario)[1]
+N <- nrow(questionario)
 W_h <- N_h / N
-H <- 2 # quantidade de extratos
+H <- 2 # quantidade de estratos
 
 # Amostra piloto 
-
-n_piloto = 200
 n_h_piloto <- ceiling(W_h * n_piloto) # estrato proporcional
+
+n_pil_final <- sum(n_h_piloto)
 
 amostra_pil_1 <- sample_n(questionario %>% filter(EMPCT %in% pub), n_h_piloto[1])
 amostra_pil_2 <- sample_n(questionario %>% filter(EMPCT %in% priv), n_h_piloto[2])
 
-p_piloto <- c(sum(amostra_pil_1$Q4 == 1) / dim(amostra_pil_1)[1],
-              sum(amostra_pil_2$Q4 == 1) / dim(amostra_pil_2)[1])
+p_piloto <- c(sum(amostra_pil_1$Q4 == 1) / nrow(amostra_pil_1),
+              sum(amostra_pil_2$Q4 == 1) / nrow(amostra_pil_2))
 
 s2hat_pil <- n_h_piloto / (n_h_piloto - 1) * p_piloto * (1 - p_piloto)
 
 varhat_phat_pil <- (1 - n_h_piloto/N) * s2hat_pil / n_h_piloto
 
+# DÚVIDA SE REALMENTE É ASSIM COMO CALCULA VARIANCIA ENTRE ESTRATO PARA PROPORCAO
+p_est_piloto <- sum(p_piloto * W_h)
+s2hat_e <- sum(W_h * (p_piloto - p_est_piloto)^2)
+s2hat_d <- sum(W_h * s2hat_pil)
+```
 
+De acordo com essa divisão retiramos uma amostra piloto de tamanho `r n_pil_final`, onde cada estrato foi amostrado com um tamanho proporcional a sua população e verificamos se o comportamento de se manter no mesmo setor do ensino quando se passa do Ensino Fundamental 2 para o Ensino Médio é similar ao do observado na Subseção \ref{ss.descr.prop}.
+
+Na Tabela \ref{tab:piloto-prop} apresentamos as estatísticas da nossa amostra piloto.
+Utilizando essas informações vemos que a variância dentro dos estratos, $\hat{s_d^2}= \ $ `r s2hat_d` é consideravelmente menor que a estimativa da variância da amostra, $\hat{s^2} = \hat{s_d^2} + \hat{s_d^2} = \ $ `r s2hat_d + s2hat_e`.
+
+\begin{table}[!h]
+\centering
+\caption{Informações de cada estrato $h$ para amostra piloto: $\hat{p}_h$ - proporção de canditatos estudaram o ensino medio completo em escolas públicas, $N_h$ - número de cadidatos no estrato, $\hat{s^2_h}$ - variância no estrato estimada na amostra piloto, $n_h$ - tamanho amostral do estrato.}
+\label{tab:piloto-prop}
+\fontsize{11}{13}\selectfont
+\begin{tabular}{l|llll}
+$h$ & $N_h$ & $\hat{p}_h$ & $\hat{s_h^2}$  & $n_h$ \\
+\hline
+1 & `r N_h[1]` & `r p_piloto[1]` & `r s2hat_pil[1]` & `r n_h_piloto[1]` \\
+2 & `r N_h[2]` & `r p_piloto[2]` & `r s2hat_pil[2]` & `r n_h_piloto[2]` \\
+\end{tabular}
+\end{table}
+
+```{r prop-inf}
 # Tamanhos amostrais
 
-delta = 0.01 # erro de estimação DUVIDA!!!
-z_t = qnorm(0.975) # para 0.95 de IC
+delta <- 0.01 # erro de estimação DUVIDA!!!
+z_t <- qnorm(0.975) # para 0.95 de IC
 n <- ceiling(1 / (delta^2/(z_t^2 * sum(W_h^2 * s2hat_pil)) + 1/N))
 
 n_h <- ceiling(n * N_h * sqrt(s2hat_pil) / sum(N_h * sqrt(s2hat_pil)))
@@ -249,14 +300,55 @@ phat_h <- c(sum(amostra_1$Q4 == 1) / dim(amostra_1)[1],
             sum(amostra_2$Q4 == 1) / dim(amostra_2)[1])
 
 phat <- sum(W_h * phat_h)
+
+s2hat <- n_h / (n_h - 1) * phat_h * (1 - phat_h)
+
+varhat_phat <- (1 - n_h_piloto/N) * s2hat / n_h_piloto
+
+s2hat_e <- sum(W_h * (p_piloto - p_est_piloto)^2)
+s2hat_d <- sum(W_h * s2hat_pil)
 ```
 
+Com as estatísticas obtidas da amostra piloto estabelecemos nossa margem de erro desejada, $\delta = \ $ `r delta`, e nosso intervalo de confiança desejado, $\gamma = 0.95$, assim conforme a Equação \ref{eq:n-prop-estrat} apresentada no Apêndice, obtemos o tamanho amostral $n = \ $ `r n`. 
+
+Uma vez definido o tamanho da amostra definimos o tamanho de cada estrato utilizando a Alocação Ótima de Neyman, Equação \ref{eq:aon-estrat} vide Apêndice, dado isso obtemos nossa amostra, ... continuar blah blah blah
+
+\begin{table}[!h]
+\centering
+\caption{Informações de cada estrato $h$: $\hat{p}_h$ - proporção de canditatos estudaram o ensino medio completo em escolas públicas, $N_h$ - número de cadidatos no estrato, $\hat{s^2_h}$ - variância no estrato estimada na amostra piloto, $n_h$ - tamanho amostral do estrato.}
+\label{tab:piloto-prop}
+\fontsize{11}{13}\selectfont
+\begin{tabular}{l|lllll}
+$h$ & $N_h$ & $\hat{p}_h$ & $\hat{Var(\hat{p_h})}$ &$\hat{s_h^2}$  & $n_h$ \\
+\hline
+1 & `r N_h[1]` & `r phat_h[1]` & `r format(varhat_phat[1], digits=4)` & `r s2hat[1]` & `r n_h[1]` \\
+2 & `r N_h[2]` & `r phat_h[2]` & `r format(varhat_phat[2], digits=4)` & `r s2hat[2]` & `r n_h[2]` \\
+\end{tabular}
+\end{table}
 
 ## Total
 
-
-# Conlcusões
+# Conclusões
 
 \bibliographystyle{plain}
 \bibliography{bibliography}
 
+# Apendice {-}
+
+Descrição das equacoes blabh blah
+
+Equação para tamanho amostral dado uma amostra estratifica sem reposição, 
+
+\begin{equation}
+n = \Big\lceil\frac{1}{\frac{\delta^2}{z_{\gamma/2} \sum_{h=1}^H{W_h^2\hat{s_h^2}}}+\frac{1}{N}}\Big\rceil
+\label{eq:n-prop-estrat}
+\end{equation}
+
+Adicionar comentários sobre está formula (aloc otima de neyney)
+
+<!-- n_h <- ceiling(n * N_h * sqrt(s2hat_pil) / sum(N_h * sqrt(s2hat_pil))) -->
+
+\begin{equation}
+n_h = \Big\lceil n \frac{N_h \hat{s}_h}{\sum_{h=1}^H{N_h \hat{s}_h}}\Big\rceil
+\label{eq:aon-estrat}
+\end{equation}
