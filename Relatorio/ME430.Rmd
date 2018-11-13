@@ -142,9 +142,7 @@ z_gamma <- qnorm(gamma)
 # tamanhos amostrais
 n_AASs <- ceiling(1 / ((delta^2 / (z_gamma^2 * var_chapeu)) + (1/N)))
 
-# Slide 18 http://www.ime.unicamp.br/~cnaber/aula_AE%20P2%20Amost%202S%202018.pdf
-# n_AE_AP de acordo com a formula do jordão, slides estão incorretos
-n_AE_AP <- ceiling(1 / ((delta^2 / (z_gamma^2 * sum(W_h^2*stats$var_h))) + (1/N))) 
+n_AE_AP <- ceiling(1 / ((delta^2 / (z_gamma^2 * sum(W_h*stats$var_h))) + (1/N))) 
 n_h <- ceiling(n_AE_AP * (N_h*stats$sd_h) / sum(N_h*stats$sd_h))
 n <- sum(n_h)
 ```
@@ -290,7 +288,7 @@ $h$ & $N_h$ & $\hat{p}_h$ & $\hat{s_h^2}$  & $n_h$ \\
 delta <- 0.01 # erro de estimação DUVIDA!!!
 gamma <- 0.975
 z_gamma <- qnorm(gamma)
-n <- ceiling(1 / (delta^2/(z_gamma^2 * sum(W_h^2 * s2hat_pil)) + 1/N))
+n <- ceiling(1 / (delta^2/(z_gamma^2 * sum(W_h * s2hat_pil)) + 1/N))
 
 n_h <- ceiling(n * N_h * sqrt(s2hat_pil) / sum(N_h * sqrt(s2hat_pil)))
 
@@ -333,6 +331,49 @@ $h$ & $N_h$ & $\hat{p}_h$ & $\hat{Var(\hat{p_h})}$ & $\hat{s_h^2}$  & $n_h$ \\
 
 ## Total
 
+```{r total-piloto}
+tau_N <- nrow(questionario)
+tau_n_piloto <- 200
+
+tau_amostra_piloto <- sample_n(questionario, tau_n_piloto)
+tau_f_piloto <- tau_amostra_piloto/tau_N
+
+tau_hat_piloto <- mean(tau_amostra_piloto$Q32C)
+tau_s2hat_piloto <- var(tau_amostra_piloto$Q32C)
+```
+
+```{r total-tam-amostral}
+tau_delta = 0.05
+gamma <- 0.975
+tau_z_t <- qnorm(gamma)
+
+tau_n = ceiling(1 / ((tau_delta^2/(tau_s2hat_piloto^2*tau_z_t^2)) + 1/tau_N))
+```
+
+
+```{r total-inf}
+tau_amostra <- sample_n(questionario, tau_n)
+tau_f <- tau_n / tau_N
+
+tau_hat <- mean(questionario$Q32C)
+tau_s2hat <- var(questionario$Q32C)
+tau_varhat <- (1 - tau_f) * tau_s2hat / tau_n
+```
+
+
+\begin{table}[!h]
+\centering
+\caption{Blah blah balh}
+\label{tab:total}
+\fontsize{11}{13}\selectfont
+
+\begin{tabular}{lllll}
+$N$ & $n$ & $\hat \mu$ & $\hat{Var(\hat \mu)}$ & $\hat{s^2}$ \\
+\hline
+`r tau_N` & `r tau_n` & `r tau_hat` & `r format(tau_varhat, digits=4)` & `r tau_s2hat`
+\end{tabular}
+\end{table}
+
 # Conclusões
 
 \bibliographystyle{plain}
@@ -344,12 +385,10 @@ Descrição das equacoes blabh blah
 
 Equação para tamanho amostral dado uma amostra estratifica sem reposição:
 
-$$ n = \Bigg\lceil\frac{1}{\frac{\delta^2}{z_{\gamma/2} \sum_{h=1}^H {W_h^2\hat{s_h^2}}} + \frac{1}{N}}\Bigg\rceil $$
+$$ n = \Bigg\lceil\frac{1}{\frac{\delta^2}{z_{\gamma} \sum_{h=1}^H {W_h\hat{s_h^2}}} + \frac{1}{N}}\Bigg\rceil $$
 \label{eq:n-prop-estrat}
 
 Adicionar comentários sobre esta formula (aloc otima de neyney)
-
-<!-- n_h <- ceiling(n * N_h * sqrt(s2hat_pil) / sum(N_h * sqrt(s2hat_pil))) -->
 
 $$ n_h = \Big\lceil n \frac{N_h \hat{s}_h}{\sum_{h=1}^H {N_h \hat{s}_h}}\Big\rceil $$
 \label{eq:aon-estrat}
