@@ -34,7 +34,7 @@ options(OutDec = ",",
 
 
 {\large Grupo}\\[0.2cm]
-{\large Bragantini, J. - 170844, Nogueira, N. - 204186, Betini, L. - 201357, Cunha, V. - 206493}\\[0.2cm]
+{\large Bragantini, J. RA170844\\Nogueira, N. RA204186\\Betini, L. RA201357\\Cunha, V. RA206493}\\[0.2cm]
 {\large Prof. Dr. Caio Azevedo}\\[6cm]
 
 {\large Campinas}\\[0.2cm]
@@ -103,26 +103,30 @@ dados_media$Q14[dados_media$Q14 > 6] <- 4
 
 ```{r piloto-media}
 # estratos
-estratos <- quo(Q14)
-N_h <- group_by(dados_media, !! estratos) %>% 
-  summarise(N_h = n()) %>% 
-  .$N_h
+N_h <- group_by(dados_media, Q14) %>% 
+  summarise(N_h = n()) %>% .$N_h
 W_h <- N_h / N
 H <- length(N_h)
+estratos <- select(dados_media, Q14) %>% distinct()
 
-# amostra piloto
+# amostra piloto sob alocação propocional
 n_piloto <- 200
-piloto_media <- select(dados_media, EMPCT, TOTAL, !! estratos) %>% 
-  group_by(!! estratos) %>% 
-  mutate(N_h = n()) %>% 
-  sample_frac(size = n_piloto/N, weight = N_h)
+
+piloto_media <- do.call(
+  rbind,
+  lapply(
+    estratos$Q14, 
+    function(h) {
+      sample_n(select(dados_media, EMPCT, TOTAL, Q14) %>% filter(Q14 == estratos$Q14[h]), 
+               size = ceiling(n_piloto * W_h[h]), replace = F)
+})
+)
 
 stats <- summarise(piloto_media, 
                    n_h = n(), 
                    mean_h = mean(TOTAL), 
                    var_h = var(TOTAL), 
-                   sd_h = sd(TOTAL)) %>% 
-  arrange(Q14)
+                   sd_h = sd(TOTAL))
 
 mu_es <- sum(W_h * stats$mean_h)
 var_d = sum(W_h * stats$var_h)
@@ -153,7 +157,8 @@ Os estratos escolhidos foram as respostas agrupadas da Questão 14 no questioná
 A amostra piloto resultou em uma estimativa de $\hat{\sigma_{\mu}^2} = \hat{\sigma_d^2} + \hat{\sigma_e^2} = `r var_d + var_e`$ **(HELP WANTED)** para a variância $\sigma_{\mu}^2$, onde $\hat{\sigma_d^2} = \sum_{i=1}^H \frac{N_h}{N}\hat{\sigma_h^2}$ é a variância estimada no h-ésimo estrato e $\hat{\sigma_e^2} = \sum_{i=1}^H \frac{N_h}{N}(\hat{\mu}_h-\mu)^2$ é a variância estimada das médias dos estratos. 
 De posse dessa informação, para realizar AE com AP e erro de estimativa $\delta = `r delta`$, é preciso um tamanho de amostra $n$ de pelo menos $n \geq \frac{z_{`r gamma`}^2}{\delta^2} \sum_{i=1}^H\frac{N_h}{N} \hat{\sigma^2}$ **(OU SERIA S^2 AQUI?)** para garantir que $P(|\mu - \hat{\mu}| \leq \delta) \geq `r gamma`$ \cite{bolfarine2005elementos}, onde $z_{`r gamma`}$ é o `r gamma`-quantil da normal padrão. Portanto, para os dados coletados, são necessárias pelo menos `r n_AE_AP` unidades amostrais.
 
-Por outro lado, uma amostragem aleatória simples sem reposição (AASs) requer $\Big(\frac{\delta^2}{\hat{s^2}z_{`r gamma`}} + \frac{1}{N}\Big)^{-1}$ para garantir que $P(|\mu - \hat{\mu}| \leq \delta) \geq `r gamma`$ \cite{bolfarine2005elementos}, onde $s_{\mu}^2 = \frac{n\sigma^2}{n-1}$. Para os dados observados, esse plano amostral precisa de `r n_AASs` unidades amostrais, número maior que no caso AE com AP. Portanto, é mais vantajoso realizar AE com AP. 
+Por outro lado, uma amostragem aleatória simples sem reposição (AASs) requer $\Big(\frac{\delta^2}{\hat{s^2}z_{`r gamma`}} + \frac{1}{N}\Big)^{-1}$ unidades amostrais para garantir que $P(|\mu - \hat{\mu}| \leq \delta) \geq `r gamma`$ \cite{bolfarine2005elementos}, onde $s_{\mu}^2 = \frac{n\sigma^2}{n-1}$. Para os dados observados, esse plano amostral precisa de `r n_AASs` unidades amostrais, número maior que no caso AE com AP. Portanto, é mais vantajoso realizar AE com AP. 
+
 É possível tornar a amostragem ainda mais robusta, utilizando a alocação ótima de Neyman (AON), que minimiza a variância da estimativa $\hat{\mu} = \sum$  para $\mu$ quando o custo de amostragem é homogêneo entre os estratos. Usando AON, temos que $n_h = n \frac{N_h\sigma_h}{\sum_{i=1}^HN_h\sigma_h}$ \cite{bolfarine2005elementos}. Como $\sigma_h$ não são valores conhecidos, foi usado $\hat{\sigma_h^2}$. As informações obtidas da amostra piloto e referentes à amostragem AE com AON estão resumidas na Tabela \ref{tab:resumo-media}. Observe que $n = `r n`$ tem `r n-n_AE_AP` unidades a mais sob AON, pelo fato de ter sido pego o menor inteiro maior que a expressão que determina $n_h$.
 
 \begin{table}[!h]
