@@ -14,6 +14,7 @@ geometry: margin=2cm
 knitr::opts_chunk$set(echo = FALSE, 
                       message = FALSE,
                       warning = FALSE,
+                      hide = TRUE,
                       tidy.opts = list(width.cutoff = 60),
                       tidy = TRUE)
 options(OutDec = ",", 
@@ -31,7 +32,6 @@ options(OutDec = ",",
 {\large Departamento de Estatística - ME430}\\[4cm]
 
 {\bf \huge Trabalho de ME430}\\[6cm]
-
 
 {\large Grupo}\\[0.2cm]
 {\large Bragantini, J. RA170844\\Nogueira, N. RA204186\\Betini, L. RA201357\\Cunha, V. RA206493}\\[0.2cm]
@@ -122,11 +122,11 @@ piloto_media <- do.call(
 })
 )
 
-stats <- summarise(piloto_media, 
-                   n_h = n(), 
-                   mean_h = mean(TOTAL), 
-                   var_h = var(TOTAL), 
-                   sd_h = sd(TOTAL))
+stats <- group_by(piloto_media, Q14) %>% 
+  summarise(n_h = n(), 
+            mean_h = mean(TOTAL), 
+            var_h = var(TOTAL), 
+            sd_h = sd(TOTAL))
 
 mu_es <- sum(W_h * stats$mean_h)
 var_d = sum(W_h * stats$var_h)
@@ -136,7 +136,7 @@ var_chapeu <- var_d + var_e
 
 ```{r tamanho-media}
 delta <- 1
-gamma <- 0.975
+gamma <- 0.95
 z_gamma <- qnorm(gamma)
 
 # tamanhos amostrais
@@ -180,65 +180,18 @@ $h$ & $N_h$ & $\hat{\sigma_h^2}$ & $n_h$ \\
 \label{ss.descr.prop}
 
 ```{r prop-descritiva}
-cor_fund1_fund2 <- questionario %$% polychoric(table(.$Q2, .$Q3))$rho
+invisible(capture.output(cor_fund1_fund2 <- polychoric(table(questionario$Q2, questionario$Q3))$rho))
 ```
 
-A nível populacional, observa-se que existe uma correlação de `r cor_fund1_fund2` entre o setor (público ou privado) da escola de um candidato em um nível (Ensino Fundamental 1, Ensino Fundalmental 2 e Ensino Médio) ao nível subsequente. De encontro a essa informação, também se observa que alunos que estudaram o Ensino Fundamental 1 completamente em instituições públicas frequentaram o Ensino Fundamental 2 público numa proporção maior dos restantes dos indivíduos **APRESENTAR DADOS QUE CORROBOREM AFIRMAÇÂO**.
+```{r prop-piloto}
+n_piloto <- 200
+piloto_prop <- sample_n(questionario, n_piloto)
 
-```{r plot-ens-fundamental}
-questionario %>% mutate(estrato = (Q2 == 1),
-                        pub = (Q3 == 1)) %>%
-    ggplot(aes(pub)) + geom_bar() + facet_grid(. ~ estrato)
-```
-
-
-## Total
-
-No banco de dados há informações sobre eletrônicos domésticos, cômodos das casas e da estrutura familiar dos inscritos no vestibular da COMVEST. Para estimar o total de quartos de uma casa, foi verificado se existe alguma ligação entre a quantidade de banheiro, número de pessoas dependentes da mesma renda familiar e quantidade de televisões na casa com o total de quartos da casa. Essas variáveis foram selecionados supondo-se que normalmente uma casa com muitos quartos possui mais banheiros, mais dependentes e a possibilidade de haverem televisões em cômodos diferentes da casa.
-
-```{r total-exploratoria}
-
-```
-
-
-```{r total-descritiva}
-smp <- sample_n(questionario, 200)
-
-# smp %>% ggplot(aes(Q32D, Q32C, alpha = 0.2)) + 
-#     geom_jitter() + xlab("# Banheiros") + ylab("# Quartos")
-
-# Deve ser maior que 0.6
-# UTILIZAR PACOTE PSYCH QUE O CAIO FALOU NA AULA
-# smp %$% fastkendall(.$Q32D, .$Q32C)
-# http://www.john-uebersax.com/stat/tetra.htm
-# corr <- smp %$% polychoric(table(.$Q15, .$Q32C))$rho
-
-# Deve ser entre 0.5 e 1.3
-tmp <- (sd(smp$Q15) / mean(smp$Q15)) / (sd(smp$Q32C)/mean(smp$Q32C))
-
-# Deve ser menor que rho(x, y)
-tmp <- (sd(smp$Q15) / mean(smp$Q15)) / (2 * sd(smp$Q32C)/mean(smp$Q32C))
-
-```
-
-
-# Análise Inferencial
-\label{s.inferencia}
-
-## Média
-
-
-## Proporção
-
-Conforme observado na Subseção \ref{ss.descr.prop} há uma tendência de os alunos se manterem no mesmo setor do ensino ao avançar nos níveis de educação antes de entrar no ensino superior. Assim dividiremos nossa população em dois estratos: 1 - candidatos que cursaram o Ensino Fundamental 1 por completo em escolas públicas e 2 - candidatos restantes.
-
-```{r prop-inf-piloto}
 # Proporcao de alunos de escola pública
 pub <- questionario[questionario$Q3 == 1, ]$EMPCT
 priv <- questionario[questionario$Q3 != 1, ]$EMPCT
 
 N_h <- c(length(pub), length(priv))
-N <- nrow(questionario)
 W_h <- N_h / N
 H <- 2 # quantidade de estratos
 
@@ -263,9 +216,27 @@ s2hat_e <- sum(W_h * (p_piloto - p_est_piloto)^2)
 s2hat_d <- sum(W_h * s2hat_pil)
 ```
 
+```{r prop-tamanho}
+delta <- 0.01 # erro de estimação DUVIDA!!!
+gamma <- 0.95
+z_gamma <- qnorm(gamma)
+n <- ceiling(1 / (delta^2/(z_gamma^2 * sum(W_h * s2hat_pil)) + 1/N))
+
+n_h <- ceiling(n * N_h * sqrt(s2hat_pil) / sum(N_h * sqrt(s2hat_pil)))
+```
+
+
+A nível populacional, observa-se que existe uma correlação de `r cor_fund1_fund2` entre o setor (público ou privado) da escola de um candidato em um nível (Ensino Fundamental 1, Ensino Fundalmental 2 e Ensino Médio) ao nível subsequente. De encontro a essa informação, também se observa que alunos que estudaram o Ensino Fundamental 1 completamente em instituições públicas frequentaram o Ensino Fundamental 2 público numa proporção maior dos restantes dos indivíduos **APRESENTAR DADOS QUE CORROBOREM AFIRMAÇÂO**.
+
+Assim dividiremos nossa população em dois estratos: 1 - candidatos que cursaram o Ensino Fundamental 1 por completo em escolas públicas e 2 - candidatos restantes.
+
+
 Sob essa estratificação, selecionamos uma amostra piloto de tamanho `r n_pil_final`, onde cada estrato foi amostrado com um tamanho proporcional a sua população e verificamos se o comportamento de se manter no mesmo setor do ensino quando se passa do Ensino Fundamental 2 para o Ensino Médio é similar ao do observado na Subseção \ref{ss.descr.prop}.
 
 Na Tabela \ref{tab:piloto-prop} apresentamos as estatísticas da nossa amostra piloto. Utilizando essas informações, vemos que a variância dentro dos estratos, $\hat{s_d^2} = `r s2hat_d`$ é consideravelmente menor que a estimativa da variância da amostra, $\hat{s^2} = \hat{s_d^2} + \hat{s_d^2} = `r s2hat_d + s2hat_e`$.
+
+Com as estatísticas obtidas da amostra piloto estabelecemos nossa margem de erro desejada, $\delta = `r delta`$, e nosso intervalo de confiança desejado, $\gamma = `r gamma`$, assim conforme a Equação \ref{eq:n-prop-estrat} apresentada no Apêndice, obtemos o tamanho amostral $n = `r n`$. 
+
 
 \begin{table}[!h]
 \centering
@@ -273,27 +244,74 @@ Na Tabela \ref{tab:piloto-prop} apresentamos as estatísticas da nossa amostra p
 \label{tab:piloto-prop}
 \fontsize{11}{13}\selectfont
 
-\begin{tabular}{l|llll}
-$h$ & $N_h$ & $\hat{p}_h$ & $\hat{s_h^2}$  & $n_h$ \\
+\begin{tabular}{l|lll}
+$h$ & $N_h$ & $\hat{p}_h$ & $\hat{s_h^2}$ \\
 \hline
 
-1 & `r N_h[1]` & `r p_piloto[1]` & `r s2hat_pil[1]` & `r n_h_piloto[1]` \\
-2 & `r N_h[2]` & `r p_piloto[2]` & `r s2hat_pil[2]` & `r n_h_piloto[2]` \\
+1 & `r N_h[1]` & `r p_piloto[1]` & `r s2hat_pil[1]` \\
+2 & `r N_h[2]` & `r p_piloto[2]` & `r s2hat_pil[2]` \\
 \end{tabular}
 \end{table}
 
+
+
+## Total
+
+```{r total-descritiva}
+n_piloto <- 200
+piloto_total <- sample_n(questionario, n_piloto)
+
+# piloto_total %>% ggplot(aes(Q32D, Q32C, alpha = 0.2)) + 
+#     geom_jitter() + xlab("# Banheiros") + ylab("# Quartos")
+
+# Deve ser maior que 0.6
+# UTILIZAR PACOTE PSYCH QUE O CAIO FALOU NA AULA
+# piloto_total %$% fastkendall(.$Q32D, .$Q32C)
+# http://www.john-uebersax.com/stat/tetra.htm
+# corr <- piloto_total %$% polychoric(table(.$Q15, .$Q32C))$rho
+
+# Deve ser entre 0.5 e 1.3
+tmp <- (sd(piloto_total$Q15) / mean(piloto_total$Q15)) / (sd(piloto_total$Q32C)/mean(piloto_total$Q32C))
+
+# Deve ser menor que rho(x, y)
+tmp <- (sd(piloto_total$Q15) / mean(piloto_total$Q15)) / (2 * sd(piloto_total$Q32C)/mean(piloto_total$Q32C))
+
+```
+
+```{r total-piloto}
+n_piloto <- 200
+
+tau_amostra_piloto <- sample_n(questionario, n_piloto)
+tau_f_piloto <- tau_amostra_piloto/N
+
+tau_hat_piloto <- mean(tau_amostra_piloto$Q32C)
+tau_s2hat_piloto <- var(tau_amostra_piloto$Q32C)
+```
+
+```{r total-tam-amostral}
+tau_delta = 0.05
+gamma <- 0.95
+tau_z_t <- qnorm(gamma)
+
+N = ceiling(1 / ((tau_delta^2/(tau_s2hat_piloto^2*tau_z_t^2)) + 1/N))
+```
+
+No banco de dados há informações sobre eletrônicos domésticos, cômodos das casas e da estrutura familiar dos inscritos no vestibular da COMVEST. Para estimar o total de quartos de uma casa, foi verificado se existe alguma ligação entre a quantidade de banheiro, número de pessoas dependentes da mesma renda familiar e quantidade de televisões na casa com o total de quartos da casa. Essas variáveis foram selecionados supondo-se que normalmente uma casa com muitos quartos possui mais banheiros, mais dependentes e a possibilidade de haverem televisões em cômodos diferentes da casa.
+
+<!-- 
+################################################################################
+-->
+
+# Análise Inferencial
+\label{s.inferencia}
+
+## Média
+
+
+## Proporção
+
 ```{r prop-inf}
-# Tamanhos amostrais
-
-delta <- 0.01 # erro de estimação DUVIDA!!!
-gamma <- 0.975
-z_gamma <- qnorm(gamma)
-n <- ceiling(1 / (delta^2/(z_gamma^2 * sum(W_h * s2hat_pil)) + 1/N))
-
-n_h <- ceiling(n * N_h * sqrt(s2hat_pil) / sum(N_h * sqrt(s2hat_pil)))
-
 # Amostragem final
-
 amostra_1 <- sample_n(questionario %>% filter(EMPCT %in% pub), n_h[1])
 amostra_2 <- sample_n(questionario %>% filter(EMPCT %in% priv), n_h[2])
 
@@ -310,7 +328,6 @@ s2hat_e <- sum(W_h * (p_piloto - p_est_piloto)^2)
 s2hat_d <- sum(W_h * s2hat_pil)
 ```
 
-Com as estatísticas obtidas da amostra piloto estabelecemos nossa margem de erro desejada, $\delta = `r delta`$, e nosso intervalo de confiança desejado, $\gamma = `r gamma`$, assim conforme a Equação \ref{eq:n-prop-estrat} apresentada no Apêndice, obtemos o tamanho amostral $n = `r n`$. 
 
 Uma vez definido o tamanho da amostra definimos o tamanho de cada estrato utilizando a Alocação Ótima de Neyman, Equação \ref{eq:aon-estrat} vide Apêndice, dado isso obtemos nossa amostra, **... continuar blah blah blah**
 
@@ -331,33 +348,13 @@ $h$ & $N_h$ & $\hat{p}_h$ & $\hat{Var(\hat{p_h})}$ & $\hat{s_h^2}$  & $n_h$ \\
 
 ## Total
 
-```{r total-piloto}
-tau_N <- nrow(questionario)
-tau_n_piloto <- 200
-
-tau_amostra_piloto <- sample_n(questionario, tau_n_piloto)
-tau_f_piloto <- tau_amostra_piloto/tau_N
-
-tau_hat_piloto <- mean(tau_amostra_piloto$Q32C)
-tau_s2hat_piloto <- var(tau_amostra_piloto$Q32C)
-```
-
-```{r total-tam-amostral}
-tau_delta = 0.05
-gamma <- 0.975
-tau_z_t <- qnorm(gamma)
-
-tau_n = ceiling(1 / ((tau_delta^2/(tau_s2hat_piloto^2*tau_z_t^2)) + 1/tau_N))
-```
-
-
 ```{r total-inf}
-tau_amostra <- sample_n(questionario, tau_n)
-tau_f <- tau_n / tau_N
+tau_amostra <- sample_n(questionario, N)
+tau_f <- N / N
 
 tau_hat <- mean(questionario$Q32C)
 tau_s2hat <- var(questionario$Q32C)
-tau_varhat <- (1 - tau_f) * tau_s2hat / tau_n
+tau_varhat <- (1 - tau_f) * tau_s2hat / N
 ```
 
 
@@ -370,7 +367,7 @@ tau_varhat <- (1 - tau_f) * tau_s2hat / tau_n
 \begin{tabular}{lllll}
 $N$ & $n$ & $\hat \mu$ & $\hat{Var(\hat \mu)}$ & $\hat{s^2}$ \\
 \hline
-`r tau_N` & `r tau_n` & `r tau_hat` & `r format(tau_varhat, digits=4)` & `r tau_s2hat`
+`r N` & `r N` & `r tau_hat` & `r format(tau_varhat, digits=4)` & `r tau_s2hat`
 \end{tabular}
 \end{table}
 
