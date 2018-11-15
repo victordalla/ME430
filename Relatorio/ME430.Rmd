@@ -56,6 +56,7 @@ library(magrittr)
 library(ggplot2)
 library(fastkendall)
 library(psych)
+library(purrr)
 ```
 
 ```{r leitura}
@@ -91,62 +92,66 @@ Tratamos as análises realizas abaixos como indepentes visto que o âmbito de ca
 
 ## Média
 
-```{r dados-media}
-dados_media <- fase1 %>% left_join(questionario)
+```{r mu-dados}
+mu_dados <- fase1 %>% left_join(questionario)
 
 # 1: NA, 2: 5 SM ou menos, 3: entre 5 e 10 SM, 4: mais de 10 SM
-dados_media$Q14[dados_media$Q14 == 0] <- 1
-dados_media$Q14[dados_media$Q14 < 5 & dados_media$Q14 != 1] <- 2
-dados_media$Q14[dados_media$Q14 == 5 | dados_media$Q14 == 6] <- 3
-dados_media$Q14[dados_media$Q14 > 6] <- 4
+mu_dados$Q14[mu_dados$Q14 == 0] <- 1
+mu_dados$Q14[mu_dados$Q14 < 5 & mu_dados$Q14 != 1] <- 2
+mu_dados$Q14[mu_dados$Q14 == 5 | mu_dados$Q14 == 6] <- 3
+mu_dados$Q14[mu_dados$Q14 > 6] <- 4
 ```
 
-```{r piloto-media}
-# estratos
-N_h <- group_by(dados_media, Q14) %>% 
-  summarise(N_h = n()) %>% .$N_h
-W_h <- N_h / N
-H <- length(N_h)
-estratos <- select(dados_media, Q14) %>% distinct()
 
-# amostra piloto sob alocação propocional
-n_piloto <- 200
+```{r mu-piloto}
 
-piloto_media <- do.call(
-  rbind,
-  lapply(
-    estratos$Q14, 
-    function(h) {
-      sample_n(select(dados_media, EMPCT, TOTAL, Q14) %>% filter(Q14 == estratos$Q14[h]), 
-               size = ceiling(n_piloto * W_h[h]), replace = F)
-})
-)
+mu_N_h <- mu_dados %>% group_by(Q14) %>% summarise(N_h = n()) %>% .$N_h
+mu_W_h <- mu_N_h / N
+mu_H <- length(mu_N_h)
 
-stats <- group_by(piloto_media, Q14) %>% 
-  summarise(n_h = n(), 
-            mean_h = mean(TOTAL), 
-            var_h = var(TOTAL), 
-            sd_h = sd(TOTAL))
+mu_n_piloto <- 200
 
-mu_es <- sum(W_h * stats$mean_h)
-var_d = sum(W_h * stats$var_h)
-var_e = sum(W_h * (stats$mean_h - mu_es)^2)
-var_chapeu <- var_d + var_e
+mu_estrato_piloto <- data.frame(Q14 = c(1, 2, 3, 4),
+                                n_h = c(ceiling(mu_W_h * mu_n_piloto)))
+
+mu_n_piloto <- sum(mu_estrato_piloto$n_h)
+
+mu_amostra_piloto <- mu_dados %>% nest(-Q14) %>% 
+    left_join(mu_estrato_piloto, by = "Q14") %>% 
+    mutate(amostra = map2(data, n_h, sample_n)) %>% 
+    unnest(amostra)
+
+mu_estat_piloto <- mu_amostra_piloto %>% group_by(Q14) %>%
+    summarise(n_h = n(),
+              mu_hat_h = mean(TOTAL),
+              s2hat_h = var(TOTAL))
+
+mu_estat_piloto$varhat_h <- ((1 - mu_estat_piloto$n_h/mu_N_h) * 
+                                 mu_estat_piloto$s2hat_h/mu_estat_piloto$n_h)
+
+mu_hat_piloto <- sum(mu_W_h * mu_estat_piloto$mu_hat_h)
+mu_s2hat_d_piloto <- sum(mu_W_h * mu_estat_piloto$s2hat_h)
+mu_s2hat_e_piloto <- sum(mu_W_h * (mu_estat_piloto$mu_hat_h - mu_hat_piloto)^2)
+mu_s2hat_total_piloto <- mu_s2hat_d_piloto + mu_s2hat_e_piloto
+
 ```
 
-```{r tamanho-media}
-delta <- 1
-gamma <- 0.95
-z_gamma <- qnorm((1 + gamma) / 2)
+
+```{r mu-tam-amostral}
+mu_delta <- 1
+mu_gamma <- 0.95
+mu_z_gamma <- qnorm((1 + mu_gamma) / 2)
 
 # tamanhos amostrais
-n_AASs <- ceiling(1 / ((delta^2 / (z_gamma^2 * var_chapeu)) + (1/N)))
+mu_n_ASSs <- ceiling(1 / ((mu_delta^2 / (mu_z_gamma^2 * mu_s2hat_total_piloto)) + (1/N)))
 
-n_AE_AP <- ceiling(1 / ((delta^2 / (z_gamma^2 * sum(W_h*stats$var_h))) + (1/N))) 
-n_h <- ceiling(n_AE_AP * (N_h*stats$sd_h) / sum(N_h*stats$sd_h))
-n <- sum(n_h)
+mu_n <- ceiling(1 / ((mu_delta^2 / (mu_z_gamma^2 *sum(mu_W_h * mu_estat_piloto$s2hat_h))) + (1/N))) 
+
+mu_n_h <- ceiling(mu_n * mu_N_h * sqrt(mu_estat_piloto$s2hat_h) /
+                      sum(mu_N_h * sqrt(mu_estat_piloto$s2hat_h)))
+
+mu_n <- sum(mu_n_h)
 ```
-
 
 Inicialmente, para estimar $\mu$, a pontuação média de todos os candidatos na 1ª fase, foi coletada uma amostra piloto de tamanho `r n_piloto` sob uma amostragem estratificada (AE) com $H = `r H`$ estratos, especificados a seguir, a fim de determinar o tamanho amostral e o plano amostral mais adequado. Para isso, foi estimado a variância $\sigma_{\mu}^2 = \frac{1}{N} \sum_{i=1}^N y_i$ da pontuação e a variância nos estratos $\sigma_{\mu h}^2 = \frac{1}{N_h} \sum_{i=1}^{N_h} y_{ih}$, onde $N = `r N`$ é o número de candidatos, $N_h$ é o tamanho populacional do h-ésimo estrato, $y_i$ é a pontuação do i-ésimo candiadato e $y_{ih}$ é a pontuação do i-ésimo candidato no h-ésimo estrato. A alocação dos estratos foi feita segundo alocação proporcional (AP). Nesse tipo de alocação, o tamanho amostral do h-ésimo estrato é $n_h = n \frac{N_h}{N}$.
 
@@ -215,7 +220,7 @@ prop_s2hat_e_piloto <- sum(prop_W_h * (prop_phat_h_piloto - prop_phat_piloto)^2)
 prop_s2hat_d_piloto <- sum(prop_W_h * prop_s2hat_piloto)
 ```
 
-```{r prop-tamanho}
+```{r prop-tam-amostral}
 prop_delta <- 0.01
 prop_gamma <- 0.95
 prop_z_gamma <- qnorm((1 + prop_gamma) / 2)
@@ -319,6 +324,40 @@ No banco de dados há informações sobre eletrônicos domésticos, cômodos das
 \label{s.inferencia}
 
 ## Média
+
+
+```{r mu-piloto}
+mu_estrato <- data.frame(Q14 = c(1, 2, 3, 4),
+                         n_h = mu_n_h)
+
+mu_amostra <- mu_dados %>% nest(-Q14) %>% 
+    left_join(mu_estrato, by = "Q14") %>% 
+    mutate(amostra = map2(data, n_h, sample_n)) %>% 
+    unnest(amostra)
+
+mu_estat <- mu_amostra %>% group_by(Q14) %>%
+    summarise(n_h = n(),
+              mu_hat_h = mean(TOTAL),
+              s2hat_h = var(TOTAL))
+
+# TODO divide por n_h ou nzinho?
+mu_estat$varhat_h <- ((1 - mu_estat$n_h/mu_N_h) * 
+                          mu_estat$s2hat_h/mu_estat$n_h)
+
+mu_hat <- sum(mu_W_h * mu_estat$mu_hat_h)
+# TODO daqui para baixo está com formula de estrato proporcional e foi utilizado alocacao otima
+mu_s2hat_d <- sum(mu_W_h * mu_estat$s2hat_h)
+mu_s2hat_e <- sum(mu_W_h * (mu_estat$mu_hat_h - mu_hat)^2)
+mu_s2hat_total <- mu_s2hat_d + mu_s2hat_e
+mu_varhat_mu <- sum(mu_W_h * (1 - mu_estat$n_h/mu_N_h) * mu_estat$s2hat_h / mu_estat$n_h)
+# TODO end
+```
+
+```{r mu-int-conf}
+mu_z_alpha <- qnorm((1 + mu_gamma)/2)
+mu_ic <- c(mu_hat - mu_z_alpha * sqrt(mu_varhat_mu),
+           mu_hat + mu_z_alpha * sqrt(mu_varhat_mu))
+```
 
 
 ## Proporção
