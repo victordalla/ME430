@@ -82,7 +82,7 @@ Este trabalho consiste na aplicação de técnicas aprendidas na disciplina ME43
 
 A Seção \ref{s.descritiva} contém análises descritivas a nível populacional e obtidas por meio de amostras pilotos. A Seção \ref{s.inferencia} apresenta análises inferenciais, estimadores pontuais e intervalos de confiança dos parâmetros de interesse. Essas duas seções são dividas em três subseções cada, uma para cada parâmetro: *Média*, *Proporção* e *Total*, que se referem, respectivamente, aos parâmetros i), ii) e iii).
 
-A principal ferramenta usada foi a linguagem de programação R. Nela, foram utilizados os pacotes: *readr* para leitura de dados; *dplyr*, *magrittr* e *tidyr* para manipulaão de dados, *fastkendall* **PARA O QUE???**, *psych* **PARA O QUE???**. Os códigos produzidos estão disponíveis em https://github.com/victordalla/ME430.
+A principal ferramenta usada foi a linguagem de programação R. Nela, foram utilizados os pacotes: *readr* para leitura de dados; *dplyr*, *magrittr* e *tidyr* para manipulação de dados, *fastkendall* para computar a Correlação de Kendall em $O(n \log(n))$ (o pacote padrão do R calcula em $O(n^2)$) e *psych* para o cômputo da Correlação Policórica. Os códigos produzidos estão disponíveis em https://github.com/victordalla/ME430.
 
 
 # Análise Descritiva
