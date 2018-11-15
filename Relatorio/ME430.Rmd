@@ -411,15 +411,80 @@ $N$ & $n$ & $\hat \tau$ & $\hat{Var(\hat \tau)}$ & $\hat{s^2}$ \\
 \bibliography{bibliography}
 
 # Apêndice {-}
+\label{apendice}
 
-Descrição das equacoes blabh blah
+Este Apêndice apresenta expressões e estimadores usados no trabalho. A subseção *Parâmetros populacionais* apresenta as expressões que definem os parâmetros pupolacionais que aparecem no corpo do texto de uma população de tamanho $N$ de valores $y_1, ..., y_N$. A subseção *Estimadores* apresenta os estimadores usados. Finalmente, a subseção *Tamanho amostral e alocação* apresenta as expressões que definem os tamanhos amostrais para alguns planos amostrais e, no caso da Amostragem Estratificada com $H$ estratos, cada um de tamanho $N_h$ e onde $y_{hi}$ é o valor do i-ésimo elemento do h-ésimo estrato, os tamanhos de cada estrato segundo algumas alocações.
 
-Equação para tamanho amostral dado uma amostra estratifica sem reposição:
+## Parâmetros populacionais {-}
 
-$$ n = \Bigg\lceil\frac{1}{\frac{\delta^2}{z_{\gamma} \sum_{h=1}^H {W_h\hat{s_h^2}}} + \frac{1}{N}}\Bigg\rceil $$
-\label{eq:n-prop-estrat}
+De modo geral, temos os seguintes parâmetros: 
+total $\tau = \sum_{i=1}^N y_i ~\refstepcounter{equation}(\theequation) \label{eq:total}$, 
+média $\mu = \frac{1}{N} \sum_{i=1}^N y_i ~\refstepcounter{equation}(\theequation) \label{eq:media}$, 
+variância $\sigma^2 = \frac{1}{N} \sum_{i=1}^N (y_i - \mu)^2 ~\refstepcounter{equation}(\theequation) \label{eq:var}$ 
+e $s^2 = \frac{1}{N-1} \sum_{i=1}^N (y_i - \mu)^2 ~\refstepcounter{equation}(\theequation) \label{eq:s}$.
 
-Adicionar comentários sobre esta formula (aloc otima de neyney)
+Sob Amostragem Estratificada, temos que o total do h-ésimo estrato é $\tau_h = \sum_{i=1}^{N_h} y_{hi} ~\refstepcounter{equation}(\theequation) \label{eq:media-h}$, 
+a média do h-ésimo estrato é $\mu_h = \frac{1}{N_h} \sum_{i=1}^{N_h} y_{hi} ~\refstepcounter{equation}(\theequation) \label{eq:media-h}$, 
+as variâncias do h-ésimo estrato são $\sigma_h = \frac{1}{N_h} \sum_{i=1}^{N_h} (y_{hi} - \mu_h)^2 ~\refstepcounter{equation}(\theequation) \label{eq:sigma-h}$ 
+e $s_h = \frac{1}{N_h-1} \sum_{i=1}^{N_h} (y_{hi} - \mu_h)^2 ~\refstepcounter{equation}(\theequation) \label{eq:s-h}$. 
 
-$$ n_h = \Big\lceil n \frac{N_h \hat{s}_h}{\sum_{h=1}^H {N_h \hat{s}_h}}\Big\rceil $$
-\label{eq:aon-estrat}
+Assim, sendo $W_h = \frac{N_h}{N}$, temos que 
+$\tau = \sum_{i=1}^H \tau_h ~\refstepcounter{equation}(\theequation) \label{eq:total-es}$, 
+$\mu = \sum_{i=1}^H W_h \mu_h ~\refstepcounter{equation}(\theequation) \label{eq:media-es}$, 
+$\sigma^2 = \sigma_d^2 + \sigma_e^2 ~\refstepcounter{equation}(\theequation) \label{eq:var-es}$ 
+e $s^2 = s_d^2 + s_e^2 ~\refstepcounter{equation}(\theequation) \label{eq:s-es}$, 
+onde $\sigma_d^2 = \sum_{i=1}^H W_h \sigma_h^2 ~\refstepcounter{equation}(\theequation) \label{eq:sigma-d}$, 
+$\sigma_e^2 = \sum_{i=1}^H W_h (\mu_h - \mu)^2 ~\refstepcounter{equation}(\theequation) \label{eq:sigma-e}$, 
+$s_d^2 = \sum_{i=1}^H \frac{N_h-1}{N-1} s_h^2 ~\refstepcounter{equation}(\theequation) \label{eq:s-d}$, 
+$s_e^2 = \sum_{i=1}^H \frac{N_h}{N-1} (\mu_h - \mu)^2 ~\refstepcounter{equation}(\theequation) \label{eq:s-e}$.
+
+Se $y_i$, $i = 1, ..., N$, assumem somente valores 0 ou 1, 
+então $p = \mu ~\refstepcounter{equation}(\theequation) \label{eq:p}$ é uma proporção, 
+$\sigma^2 = p(1-p) ~\refstepcounter{equation}(\theequation) \label{eq:sigma-p}$ 
+e $s^2 = \frac{N}{N-1} p(1-p) ~\refstepcounter{equation}(\theequation) \label{eq:s-p}$. E, no caso da Amostragem Estratificada, 
+$p_h = \mu_h ~\refstepcounter{equation}(\theequation) \label{eq:p-h}$ é a proporção do h-ésimo estrato, 
+$\sigma_h^2 = p_h(1-p_h) ~\refstepcounter{equation}(\theequation) \label{eq:sigma-p-h}$ 
+e $s_h^2 = \frac{N}{N-1} \sigma_h^2 ~\refstepcounter{equation}(\theequation) \label{eq:s-p-h}$.
+
+
+## Estimadores {-}
+
+Os seguintes estimadores se referem a uma amostra de tamanho $n$.
+
+Sob Amostragem Simples sem reposição:
+$\hat{\mu} = \frac{1}{n} \sum_{i=1}^n Y_i$
+$\hat{\tau} = N\hat{\mu}$ e 
+$\hat{s}^2 = \frac{1}{n-1} \sum_{i=1}^n (Y_i - \hat{\mu})^2$.
+
+Sob Amostragem Estratificada: 
+$\hat{\mu}_h = \frac{1}{N_h} \sum_{i=1}^{N_h} Y_{ih}$, 
+$\hat{\mu} = \sum_{i=h}^H W_h \hat{\mu}_h$, 
+$\hat{s}^2$ **QUAL???**. No caso em que $y_i$, $i = 1, ..., N$, assumem somente valores 0 ou 1, $\hat{p}$, $\hat{p}_h$, $\hat{s}^2$ e $\hat{s}_h^2$ têm a mesma forma que $\hat{\mu}$, $\hat{\mu}_h$, $\hat{\mu}^2$ e $\hat{\mu}_h^2$, respectivamente $~\refstepcounter{equation}(\theequation) \label{eq:p-hat}$.
+
+
+## Tamanho amostral e alocação {-}
+
+Segundo Bolfarine *et al.* \cite{bolfarine2005elementos}, as seguintes expressões para $n$ garantem que $P(|\mu - \hat{\mu}| \leq \delta) \geq \gamma$, onde $z_{\gamma}$ é o $(\frac{1-\gamma}{2})$-quantil da normal padrão.
+
+Sob Amostragem Simples sem reposição: 
+\begin{equation} \label{eq:n-aass}
+n = \Big\lceil \Big( \frac{\delta^2}{\hat{s^2}z_{`r gamma`}} + \frac{1}{N} \Big)^{-1} \Big\rceil
+\end{equation}
+
+Sob Amostragem Estratificada **QUAL FÓRMULA???**: 
+
+\begin{equation} \label{eq:n-estrat}
+n = \Bigg\lceil \frac{1}{\frac{\delta^2}{z_{\gamma} \sum_{h=1}^H {W_h\hat{s}_h^2}} + \frac{1}{N}} \Bigg\rceil
+\end{equation}
+
+Ainda sob Amostragem Estratificada e tomando o menor inteiro maior que e expressção que determina $n_h$ para todo estrato, a Alocação Proporcional determina que 
+
+\begin{equation} \label{eq:n-h-ap}
+n_h = \lceil n W_h \rceil
+\end{equation}
+
+A Alocação Ótima de Neyman determina que 
+\begin{equation} \label{eq:n-h-aon}
+n_h = \Big\lceil n \frac{N_h \hat{s}_h}{\sum_{h=1}^H {N_h \hat{s}_h}}\Big\rceil
+\end{equation}
+
