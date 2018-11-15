@@ -528,4 +528,3 @@ A Alocação Ótima de Neyman determina que
 \begin{equation} \label{eq:n-h-aon}
 n_h = \Big\lceil n \frac{N_h \hat{s}_h}{\sum_{h=1}^H {N_h \hat{s}_h}}\Big\rceil
 \end{equation}
-
