@@ -137,7 +137,7 @@ var_chapeu <- var_d + var_e
 ```{r tamanho-media}
 delta <- 1
 gamma <- 0.95
-z_gamma <- qnorm(gamma)
+z_gamma <- qnorm((1 + gamma) / 2)
 
 # tamanhos amostrais
 n_AASs <- ceiling(1 / ((delta^2 / (z_gamma^2 * var_chapeu)) + (1/N)))
@@ -218,7 +218,7 @@ prop_s2hat_d_piloto <- sum(prop_W_h * prop_s2hat_piloto)
 ```{r prop-tamanho}
 prop_delta <- 0.01
 prop_gamma <- 0.95
-prop_z_gamma <- qnorm(prop_gamma)
+prop_z_gamma <- qnorm((1 + prop_gamma) / 2)
 prop_n <- ceiling(1 / (prop_delta^2/(prop_z_gamma^2 * sum(prop_W_h * prop_s2hat_piloto)) + 1/N))
 
 prop_n_h <- ceiling(prop_n * prop_N_h * sqrt(prop_s2hat_piloto) / sum(prop_N_h * sqrt(prop_s2hat_piloto)))
@@ -286,23 +286,27 @@ questionario$Q32C[questionario$Q32C == 5] <- 0
 ```
 
 ```{r total-piloto}
-n_piloto <- 200
+tau_n_piloto <- 200
 
-tau_amostra_piloto <- sample_n(questionario, n_piloto)
-tau_f_piloto <- tau_amostra_piloto/N
+tau_amostra_piloto <- sample_n(questionario, tau_n_piloto)
+tau_amostra_piloto_sem_na <- tau_amostra_piloto %>% filter(!is.na(Q32C))
 
-tau_hat_piloto <- N * mean(tau_amostra_piloto$Q32C, na.rm = TRUE)
-tau_s2hat_piloto <- var(tau_amostra_piloto$Q32C, na.rm = TRUE)
+tau_n_piloto_sem_na <- nrow(tau_amostra_piloto_sem_na)
+
+tau_prop_na <- 1 - (tau_n_piloto_sem_na/tau_n_piloto)
+
+tau_hat_piloto <- N * mean(tau_amostra_piloto_sem_na$Q32C)
+tau_s2hat_piloto <- var(tau_amostra_piloto_sem_na$Q32C)
+tau_varhat_piloto <- N^2 * (1 - tau_n_piloto_sem_na/N) * tau_s2hat_piloto / tau_n_piloto_sem_na
 ```
 
 ```{r total-tam-amostral}
 tau_delta = 3500
 tau_gamma <- 0.95
-tau_z_t <- qnorm(tau_gamma)
+tau_z_t <- qnorm((1 + tau_gamma) / 2)
 
-# tau_n <- ceiling(1 / ((tau_delta^2/(N^2*tau_s2hat_piloto^2*tau_z_t^2)) + 1/N))
 tau_n <- 1 / ((tau_delta^2/(N^2*tau_s2hat_piloto^2*tau_z_t^2)) + 1/N)
-tau_n <- ceiling(tau_n * (1 + sum(is.na(tau_amostra_piloto$Q32C)) / nrow(tau_amostra_piloto)))
+tau_n <- ceiling(tau_n * (1 + tau_prop_na))
 ```
 
 No banco de dados há informações sobre eletrônicos domésticos, cômodos das casas e da estrutura familiar dos inscritos no vestibular da COMVEST. Para estimar o total de quartos de uma casa, foi verificado se existe alguma ligação entre a quantidade de banheiro, número de pessoas dependentes da mesma renda familiar e quantidade de televisões na casa com o total de quartos da casa. Essas variáveis foram selecionados supondo-se que normalmente uma casa com muitos quartos possui mais banheiros, mais dependentes e a possibilidade de haverem televisões em cômodos diferentes da casa.
@@ -338,8 +342,8 @@ prop_varhat_phat_h <- (1 - prop_n_h/N) * prop_s2hat / prop_n_h
 prop_varhat_phat <- sum( (1 - prop_n_h/prop_N_h) * prop_W_h^2 * 
                              prop_phat_h * (1 - prop_phat_h) / (prop_n_h - 1))
 
-s2hat_e <- sum(prop_W_h * (prop_phat_h - prop_phat)^2)
-s2hat_d <- sum(prop_W_h * prop_phat)
+prop_s2hat_e <- sum(prop_W_h * (prop_phat_h - prop_phat)^2)
+prop_s2hat_d <- sum(prop_W_h * prop_phat)
 ```
 
 ```{r prop-int-conf}
@@ -371,15 +375,22 @@ $h$ & $N_h$ & $\hat{p}_h$ & $\hat{Var(\hat{p_h})}$ & $\hat{s_h^2}$  & $n_h$ \\
 
 ## Total
 
-```{r total-inf}
+```{r total-amostra}
 tau_amostra <- sample_n(questionario, tau_n)
-tau_f <- tau_n / N
+tau_amostra_sem_na <- tau_amostra %>% filter(!is.na(Q32C))
+tau_n_sem_na <- nrow(tau_amostra_sem_na)
 
-tau_hat <- N * mean(questionario$Q32C, na.rm = TRUE)
-tau_s2hat <- var(questionario$Q32C, na.rm = TRUE)
-tau_varhat <- N^2 * (1 - tau_f) * tau_s2hat / tau_n
+tau_hat <- N * mean(tau_amostra_sem_na$Q32C)
+tau_s2hat <- var(tau_amostra_sem_na$Q32C)
+tau_varhat <- N^2 * (1 - tau_n_sem_na / N) * tau_s2hat / tau_n_sem_na
 ```
 
+```{r total-int-conf}
+tau_z_alpha <- qnorm((1 + tau_gamma)/2)
+
+tau_ic <- c(tau_hat - tau_z_alpha * sqrt(tau_varhat),
+            tau_hat + tau_z_alpha * sqrt(tau_varhat))
+```
 
 \begin{table}[!h]
 \centering
@@ -388,9 +399,9 @@ tau_varhat <- N^2 * (1 - tau_f) * tau_s2hat / tau_n
 \fontsize{11}{13}\selectfont
 
 \begin{tabular}{lllll}
-$N$ & $n$ & $\hat \mu$ & $\hat{Var(\hat \mu)}$ & $\hat{s^2}$ \\
+$N$ & $n$ & $\hat \tau$ & $\hat{Var(\hat \tau)}$ & $\hat{s^2}$ \\
 \hline
-`r N` & `r N` & `r format(tau_hat, digits=4)` & `r format(tau_varhat, digits=4)` & `r tau_s2hat`
+`r N` & `r tau_n_sem_na` & `r format(tau_hat, digits=4)` & `r format(tau_varhat, digits=4)` & `r tau_s2hat`
 \end{tabular}
 \end{table}
 
