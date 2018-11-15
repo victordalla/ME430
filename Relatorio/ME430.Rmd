@@ -53,7 +53,6 @@ library(readr)
 library(dplyr)
 library(tidyr)
 library(magrittr)
-library(ggplot2)
 library(fastkendall)
 library(psych)
 ```
@@ -79,8 +78,11 @@ conv_matr %<>% subset(!duplicated(conv_matr$EMPCT))
 N <- nrow(fase1)
 ```
 
-Este trabalho consiste na aplicação de técnicas aprendidas na disciplina ME430 - Técnicas de Amostragem - em um conjunto de dados da COMVEST. Esse conjunto de dados possui informações de `r N` candidatos ao vestibular 2017 e seus desempenhos nele. O objetivo é estimar i) a média da pontuação total de cada cadiadato, ii) a proporção de candidatos que cursaram todo o ensino médio em escola pública e iii) o total de quartos nas casas de todos os candidatos. 
-A Seção \ref{s.descritiva} contém análises descritivas a nível populacional e obtidas por meio de amostras pilotos. A Seção \ref{s.inferencia} apresenta análises inferenciais, estimadores pontuais dos parâmetros de interesse e seus intervalos de confiança. Essas duas seções são dividas em três subseções cada, uma para cada parâmetro: *Média*, *Proporção* e *Total*, que se referem, respectivamente, aos parâmetros i), ii) e iii).
+Este trabalho consiste na aplicação de técnicas aprendidas na disciplina ME430 - Técnicas de Amostragem - em um conjunto de dados da COMVEST. Esse conjunto de dados possui informações de `r N` candidatos ao vestibular 2017 da UNICAMP e seus desempenhos nele. O objetivo é estimar i) a média da pontuação total de cada cadiadato, ii) a proporção de candidatos que cursaram todo o ensino médio em escola pública e iii) o total de quartos nas casas de todos os candidatos. 
+
+A Seção \ref{s.descritiva} contém análises descritivas a nível populacional e obtidas por meio de amostras pilotos. A Seção \ref{s.inferencia} apresenta análises inferenciais, estimadores pontuais e intervalos de confiança dos parâmetros de interesse. Essas duas seções são dividas em três subseções cada, uma para cada parâmetro: *Média*, *Proporção* e *Total*, que se referem, respectivamente, aos parâmetros i), ii) e iii).
+
+A principal ferramenta usada foi a linguagem de programação R. Nela, foram utilizados os pacotes: *readr* para leitura de dados; *dplyr*, *magrittr* e *tidyr* para manipulaão de dados, *fastkendall* **PARA O QUE???**, *psych* **PARA O QUE???**. Os códigos produzidos estão disponíveis em https://github.com/victordalla/ME430.
 
 
 # Análise Descritiva
