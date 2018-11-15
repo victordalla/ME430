@@ -184,45 +184,46 @@ invisible(capture.output(cor_fund1_fund2 <- polychoric(table(questionario$Q2, qu
 ```
 
 ```{r prop-piloto}
-n_piloto <- 200
-piloto_prop <- sample_n(questionario, n_piloto)
+prop_n_piloto <- 200
+prop_amostra_piloto <- sample_n(questionario, prop_n_piloto)
 
 # Proporcao de alunos de escola pública
 pub <- questionario[questionario$Q3 == 1, ]$EMPCT
 priv <- questionario[questionario$Q3 != 1, ]$EMPCT
 
-N_h <- c(length(pub), length(priv))
-W_h <- N_h / N
-H <- 2 # quantidade de estratos
+prop_N_h <- c(length(pub), length(priv))
+prop_W_h <- prop_N_h / N
+prop_H <- 2 # quantidade de estratos
 
 # Amostra piloto 
-n_h_piloto <- ceiling(W_h * n_piloto) # estrato proporcional
+prop_n_h_piloto <- ceiling(prop_W_h * prop_n_piloto) # estrato proporcional
 
-n_pil_final <- sum(n_h_piloto)
+prop_n_piloto <- sum(prop_n_h_piloto)
 
-amostra_pil_1 <- sample_n(questionario %>% filter(EMPCT %in% pub), n_h_piloto[1])
-amostra_pil_2 <- sample_n(questionario %>% filter(EMPCT %in% priv), n_h_piloto[2])
+prop_amostra_pil_h1 <- sample_n(questionario %>% filter(EMPCT %in% pub), prop_n_h_piloto[1])
+prop_amostra_pil_h2 <- sample_n(questionario %>% filter(EMPCT %in% priv), prop_n_h_piloto[2])
 
-p_piloto <- c(sum(amostra_pil_1$Q4 == 1) / nrow(amostra_pil_1),
-              sum(amostra_pil_2$Q4 == 1) / nrow(amostra_pil_2))
+prop_phat_h_piloto <- c(sum(prop_amostra_pil_h1$Q4 == 1) / nrow(prop_amostra_pil_h1),
+                      sum(prop_amostra_pil_h2$Q4 == 1) / nrow(prop_amostra_pil_h2))
 
-s2hat_pil <- n_h_piloto / (n_h_piloto - 1) * p_piloto * (1 - p_piloto)
+prop_s2hat_piloto <- prop_n_h_piloto / (prop_n_h_piloto - 1) * prop_phat_h_piloto * (1 - prop_phat_h_piloto)
 
-varhat_phat_pil <- (1 - n_h_piloto/N) * s2hat_pil / n_h_piloto
+varhat_phat_piloto <- (1 - prop_n_h_piloto/N) * prop_s2hat_piloto / prop_n_h_piloto
 
-# DÚVIDA SE REALMENTE É ASSIM COMO CALCULA VARIANCIA ENTRE ESTRATO PARA PROPORCAO
-p_est_piloto <- sum(p_piloto * W_h)
-s2hat_e <- sum(W_h * (p_piloto - p_est_piloto)^2)
-s2hat_d <- sum(W_h * s2hat_pil)
+prop_phat_piloto <- sum(prop_phat_h_piloto * prop_W_h)
+prop_s2hat_e_piloto <- sum(prop_W_h * (prop_phat_h_piloto - prop_phat_piloto)^2)
+prop_s2hat_d_piloto <- sum(prop_W_h * prop_s2hat_piloto)
 ```
 
 ```{r prop-tamanho}
-delta <- 0.01 # erro de estimação DUVIDA!!!
-gamma <- 0.95
-z_gamma <- qnorm(gamma)
-n <- ceiling(1 / (delta^2/(z_gamma^2 * sum(W_h * s2hat_pil)) + 1/N))
+prop_delta <- 0.01
+prop_gamma <- 0.95
+prop_z_gamma <- qnorm(prop_gamma)
+prop_n <- ceiling(1 / (prop_delta^2/(prop_z_gamma^2 * sum(prop_W_h * prop_s2hat_piloto)) + 1/N))
 
-n_h <- ceiling(n * N_h * sqrt(s2hat_pil) / sum(N_h * sqrt(s2hat_pil)))
+prop_n_h <- ceiling(prop_n * prop_N_h * sqrt(prop_s2hat_piloto) / sum(prop_N_h * sqrt(prop_s2hat_piloto)))
+
+prop_n <- sum(prop_n_h)
 ```
 
 
@@ -231,11 +232,11 @@ A nível populacional, observa-se que existe uma correlação de `r cor_fund1_fu
 Assim dividiremos nossa população em dois estratos: 1 - candidatos que cursaram o Ensino Fundamental 1 por completo em escolas públicas e 2 - candidatos restantes.
 
 
-Sob essa estratificação, selecionamos uma amostra piloto de tamanho `r n_pil_final`, onde cada estrato foi amostrado com um tamanho proporcional a sua população e verificamos se o comportamento de se manter no mesmo setor do ensino quando se passa do Ensino Fundamental 2 para o Ensino Médio é similar ao do observado na Subseção \ref{ss.descr.prop}.
+Sob essa estratificação, selecionamos uma amostra piloto de tamanho `r prop_n_piloto`, onde cada estrato foi amostrado com um tamanho proporcional a sua população e verificamos se o comportamento de se manter no mesmo setor do ensino quando se passa do Ensino Fundamental 2 para o Ensino Médio é similar ao do observado na Subseção \ref{ss.descr.prop}.
 
-Na Tabela \ref{tab:piloto-prop} apresentamos as estatísticas da nossa amostra piloto. Utilizando essas informações, vemos que a variância dentro dos estratos, $\hat{s_d^2} = `r s2hat_d`$ é consideravelmente menor que a estimativa da variância da amostra, $\hat{s^2} = \hat{s_d^2} + \hat{s_d^2} = `r s2hat_d + s2hat_e`$.
+Na Tabela \ref{tab:piloto-prop} apresentamos as estatísticas da nossa amostra piloto. Utilizando essas informações, vemos que a variância dentro dos estratos, $\hat{s_d^2} = `r prop_s2hat_d_piloto`$ é consideravelmente menor que a estimativa da variância da amostra, $\hat{s^2} = \hat{s_d^2} + \hat{s_d^2} = `r prop_s2hat_d_piloto + prop_s2hat_e_piloto`$.
 
-Com as estatísticas obtidas da amostra piloto estabelecemos nossa margem de erro desejada, $\delta = `r delta`$, e nosso intervalo de confiança desejado, $\gamma = `r gamma`$, assim conforme a Equação \ref{eq:n-prop-estrat} apresentada no Apêndice, obtemos o tamanho amostral $n = `r n`$. 
+Com as estatísticas obtidas da amostra piloto estabelecemos nossa margem de erro desejada, $\delta = `r prop_delta`$, e nosso intervalo de confiança desejado, $\gamma = `r prop_gamma`$, assim conforme a Equação \ref{eq:n-prop-estrat} apresentada no Apêndice, obtemos o tamanho amostral $n = `r prop_n`$. 
 
 
 \begin{table}[!h]
@@ -248,8 +249,8 @@ Com as estatísticas obtidas da amostra piloto estabelecemos nossa margem de err
 $h$ & $N_h$ & $\hat{p}_h$ & $\hat{s_h^2}$ \\
 \hline
 
-1 & `r N_h[1]` & `r p_piloto[1]` & `r s2hat_pil[1]` \\
-2 & `r N_h[2]` & `r p_piloto[2]` & `r s2hat_pil[2]` \\
+1 & `r prop_N_h[1]` & `r prop_phat_h_piloto[1]` & `r prop_s2hat_piloto[1]` \\
+2 & `r prop_N_h[2]` & `r prop_phat_h_piloto[2]` & `r prop_s2hat_piloto[2]` \\
 \end{tabular}
 \end{table}
 
@@ -258,8 +259,14 @@ $h$ & $N_h$ & $\hat{p}_h$ & $\hat{s_h^2}$ \\
 ## Total
 
 ```{r total-descritiva}
-n_piloto <- 200
-piloto_total <- sample_n(questionario, n_piloto)
+
+# Conferir isso, adicionar isso na analise descritiva que 
+# 0 é igual a não resposta e 5 é igual a zero quartos 
+questionario$Q32C[questionario$Q32C == 0] <- NA
+questionario$Q32C[questionario$Q32C == 5] <- 0
+
+# n_piloto <- 200
+# piloto_total <- sample_n(questionario, n_piloto)
 
 # piloto_total %>% ggplot(aes(Q32D, Q32C, alpha = 0.2)) + 
 #     geom_jitter() + xlab("# Banheiros") + ylab("# Quartos")
@@ -271,10 +278,10 @@ piloto_total <- sample_n(questionario, n_piloto)
 # corr <- piloto_total %$% polychoric(table(.$Q15, .$Q32C))$rho
 
 # Deve ser entre 0.5 e 1.3
-tmp <- (sd(piloto_total$Q15) / mean(piloto_total$Q15)) / (sd(piloto_total$Q32C)/mean(piloto_total$Q32C))
-
+# tmp <- (sd(piloto_total$Q15) / mean(piloto_total$Q15)) / (sd(piloto_total$Q32C)/mean(piloto_total$Q32C))
+# 
 # Deve ser menor que rho(x, y)
-tmp <- (sd(piloto_total$Q15) / mean(piloto_total$Q15)) / (2 * sd(piloto_total$Q32C)/mean(piloto_total$Q32C))
+# tmp <- (sd(piloto_total$Q15) / mean(piloto_total$Q15)) / (2 * sd(piloto_total$Q32C)/mean(piloto_total$Q32C))
 
 ```
 
@@ -284,16 +291,18 @@ n_piloto <- 200
 tau_amostra_piloto <- sample_n(questionario, n_piloto)
 tau_f_piloto <- tau_amostra_piloto/N
 
-tau_hat_piloto <- mean(tau_amostra_piloto$Q32C)
-tau_s2hat_piloto <- var(tau_amostra_piloto$Q32C)
+tau_hat_piloto <- N * mean(tau_amostra_piloto$Q32C, na.rm = TRUE)
+tau_s2hat_piloto <- var(tau_amostra_piloto$Q32C, na.rm = TRUE)
 ```
 
 ```{r total-tam-amostral}
-tau_delta = 0.05
-gamma <- 0.95
-tau_z_t <- qnorm(gamma)
+tau_delta = 3500
+tau_gamma <- 0.95
+tau_z_t <- qnorm(tau_gamma)
 
-N = ceiling(1 / ((tau_delta^2/(tau_s2hat_piloto^2*tau_z_t^2)) + 1/N))
+# tau_n <- ceiling(1 / ((tau_delta^2/(N^2*tau_s2hat_piloto^2*tau_z_t^2)) + 1/N))
+tau_n <- 1 / ((tau_delta^2/(N^2*tau_s2hat_piloto^2*tau_z_t^2)) + 1/N)
+tau_n <- ceiling(tau_n * (1 + sum(is.na(tau_amostra_piloto$Q32C)) / nrow(tau_amostra_piloto)))
 ```
 
 No banco de dados há informações sobre eletrônicos domésticos, cômodos das casas e da estrutura familiar dos inscritos no vestibular da COMVEST. Para estimar o total de quartos de uma casa, foi verificado se existe alguma ligação entre a quantidade de banheiro, número de pessoas dependentes da mesma renda familiar e quantidade de televisões na casa com o total de quartos da casa. Essas variáveis foram selecionados supondo-se que normalmente uma casa com muitos quartos possui mais banheiros, mais dependentes e a possibilidade de haverem televisões em cômodos diferentes da casa.
@@ -310,24 +319,38 @@ No banco de dados há informações sobre eletrônicos domésticos, cômodos das
 
 ## Proporção
 
-```{r prop-inf}
+```{r prop-amostra}
 # Amostragem final
-amostra_1 <- sample_n(questionario %>% filter(EMPCT %in% pub), n_h[1])
-amostra_2 <- sample_n(questionario %>% filter(EMPCT %in% priv), n_h[2])
+prop_amostra_h1 <- sample_n(questionario %>% filter(EMPCT %in% pub), prop_n_h[1])
+prop_amostra_h2 <- sample_n(questionario %>% filter(EMPCT %in% priv), prop_n_h[2])
 
-phat_h <- c(sum(amostra_1$Q4 == 1) / dim(amostra_1)[1],
-            sum(amostra_2$Q4 == 1) / dim(amostra_2)[1])
+prop_phat_h <- c(sum(prop_amostra_h1$Q4 == 1) / nrow(prop_amostra_h1),
+            sum(prop_amostra_h2$Q4 == 1) / nrow(prop_amostra_h2))
 
-phat <- sum(W_h * phat_h)
+prop_phat <- sum(prop_W_h * prop_phat_h)
 
-s2hat <- n_h / (n_h - 1) * phat_h * (1 - phat_h)
+prop_s2hat <- prop_n_h / (prop_n_h - 1) * prop_phat_h * (1 - prop_phat_h)
 
-varhat_phat <- (1 - n_h_piloto/N) * s2hat / n_h_piloto
+prop_varhat_phat_h <- (1 - prop_n_h/N) * prop_s2hat / prop_n_h
 
-s2hat_e <- sum(W_h * (p_piloto - p_est_piloto)^2)
-s2hat_d <- sum(W_h * s2hat_pil)
+# http://www.ime.unicamp.br/~cnaber/aula_AE%20P3%20Amost%202S%202018.pdf 
+# Slide 13
+prop_varhat_phat <- sum( (1 - prop_n_h/prop_N_h) * prop_W_h^2 * 
+                             prop_phat_h * (1 - prop_phat_h) / (prop_n_h - 1))
+
+s2hat_e <- sum(prop_W_h * (prop_phat_h - prop_phat)^2)
+s2hat_d <- sum(prop_W_h * prop_phat)
 ```
 
+```{r prop-int-conf}
+# http://www.ime.unicamp.br/~cnaber/aula_AE%20P3%20Amost%202S%202018.pdf 
+# Slide 18
+# utilizando z_alpha segundo formula do z_gamma no slide 19
+
+prop_z_alpha <- qnorm((1 + prop_gamma)/2)
+prop_ic <- c(prop_phat - prop_z_alpha * sqrt(prop_varhat_phat),
+             prop_phat + prop_z_alpha * sqrt(prop_varhat_phat))
+```
 
 Uma vez definido o tamanho da amostra definimos o tamanho de cada estrato utilizando a Alocação Ótima de Neyman, Equação \ref{eq:aon-estrat} vide Apêndice, dado isso obtemos nossa amostra, **... continuar blah blah blah**
 
@@ -341,20 +364,20 @@ Uma vez definido o tamanho da amostra definimos o tamanho de cada estrato utiliz
 $h$ & $N_h$ & $\hat{p}_h$ & $\hat{Var(\hat{p_h})}$ & $\hat{s_h^2}$  & $n_h$ \\
 \hline
 
-1 & `r N_h[1]` & `r phat_h[1]` & `r format(varhat_phat[1], digits=4)` & `r s2hat[1]` & `r n_h[1]` \\
-2 & `r N_h[2]` & `r phat_h[2]` & `r format(varhat_phat[2], digits=4)` & `r s2hat[2]` & `r n_h[2]` \\
+1 & `r prop_N_h[1]` & `r prop_phat_h[1]` & `r format(prop_varhat_phat_h[1], digits=4)` & `r prop_s2hat[1]` & `r prop_n_h[1]` \\
+2 & `r prop_N_h[2]` & `r prop_phat_h[2]` & `r format(prop_varhat_phat_h[2], digits=4)` & `r prop_s2hat[2]` & `r prop_n_h[2]` \\
 \end{tabular}
 \end{table}
 
 ## Total
 
 ```{r total-inf}
-tau_amostra <- sample_n(questionario, N)
-tau_f <- N / N
+tau_amostra <- sample_n(questionario, tau_n)
+tau_f <- tau_n / N
 
-tau_hat <- mean(questionario$Q32C)
-tau_s2hat <- var(questionario$Q32C)
-tau_varhat <- (1 - tau_f) * tau_s2hat / N
+tau_hat <- N * mean(questionario$Q32C, na.rm = TRUE)
+tau_s2hat <- var(questionario$Q32C, na.rm = TRUE)
+tau_varhat <- N^2 * (1 - tau_f) * tau_s2hat / tau_n
 ```
 
 
@@ -367,7 +390,7 @@ tau_varhat <- (1 - tau_f) * tau_s2hat / N
 \begin{tabular}{lllll}
 $N$ & $n$ & $\hat \mu$ & $\hat{Var(\hat \mu)}$ & $\hat{s^2}$ \\
 \hline
-`r N` & `r N` & `r tau_hat` & `r format(tau_varhat, digits=4)` & `r tau_s2hat`
+`r N` & `r N` & `r format(tau_hat, digits=4)` & `r format(tau_varhat, digits=4)` & `r tau_s2hat`
 \end{tabular}
 \end{table}
 
