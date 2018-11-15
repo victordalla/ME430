@@ -493,13 +493,13 @@ e $s_h^2 = \frac{N}{N-1} \sigma_h^2 ~\refstepcounter{equation}(\theequation) \la
 Os seguintes estimadores se referem a uma amostra de tamanho $n$.
 
 Sob Amostragem Simples sem reposição:
-$\hat{\mu} = \frac{1}{n} \sum_{i=1}^n Y_i$
-$\hat{\tau} = N\hat{\mu}$ e 
-$\hat{s}^2 = \frac{1}{n-1} \sum_{i=1}^n (Y_i - \hat{\mu})^2$.
+$\hat{\mu} = \frac{1}{n} \sum_{i=1}^n Y_i ~\refstepcounter{equation}(\theequation) \label{eq:media-hat}$
+$\hat{\tau} = N\hat{\mu} ~\refstepcounter{equation}(\theequation) \label{eq:total-hat}$ e 
+$\hat{s}^2 = \frac{1}{n-1} \sum_{i=1}^n (Y_i - \hat{\mu})^2 ~\refstepcounter{equation}(\theequation) \label{eq:s-hat}$.
 
 Sob Amostragem Estratificada: 
-$\hat{\mu}_h = \frac{1}{N_h} \sum_{i=1}^{N_h} Y_{ih}$, 
-$\hat{\mu} = \sum_{i=h}^H W_h \hat{\mu}_h$, 
+$\hat{\mu}_h = \frac{1}{N_h} \sum_{i=1}^{N_h} Y_{ih} ~\refstepcounter{equation}(\theequation) \label{eq:media-h-hat}$, 
+$\hat{\mu} = \sum_{i=h}^H W_h \hat{\mu}_h ~\refstepcounter{equation}(\theequation) \label{eq:mu-hat-es}$, 
 $\hat{s}^2$ **QUAL???**. No caso em que $y_i$, $i = 1, ..., N$, assumem somente valores 0 ou 1, $\hat{p}$, $\hat{p}_h$, $\hat{s}^2$ e $\hat{s}_h^2$ têm a mesma forma que $\hat{\mu}$, $\hat{\mu}_h$, $\hat{\mu}^2$ e $\hat{\mu}_h^2$, respectivamente $~\refstepcounter{equation}(\theequation) \label{eq:p-hat}$.
 
 
