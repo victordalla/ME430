@@ -155,16 +155,16 @@ mu_n_h <- ceiling(mu_n * mu_N_h * sqrt(mu_estat_piloto$s2hat_h) /
 mu_n <- sum(mu_n_h)
 ```
 
-Inicialmente, para estimar $\mu$, a pontuação média de todos os candidatos na 1ª fase, foi coletada uma amostra piloto de tamanho `r n_piloto` sob uma amostragem estratificada (AE) com $H = `r H`$ estratos, especificados a seguir, a fim de determinar o tamanho amostral e o plano amostral mais adequado. Para isso, foi estimado a variância $\sigma_{\mu}^2 = \frac{1}{N} \sum_{i=1}^N y_i$ da pontuação e a variância nos estratos $\sigma_{\mu h}^2 = \frac{1}{N_h} \sum_{i=1}^{N_h} y_{ih}$, onde $N = `r N`$ é o número de candidatos, $N_h$ é o tamanho populacional do h-ésimo estrato, $y_i$ é a pontuação do i-ésimo candiadato e $y_{ih}$ é a pontuação do i-ésimo candidato no h-ésimo estrato. A alocação dos estratos foi feita segundo alocação proporcional (AP). Nesse tipo de alocação, o tamanho amostral do h-ésimo estrato é $n_h = n \frac{N_h}{N}$.
+Inicialmente, para estimar $\mu$, a pontuação média de todos os candidatos na 1ª fase, foi coletada uma amostra piloto de tamanho `r mu_n_piloto` sob uma amostragem estratificada (AE) com $H = `r mu_H`$ estratos, especificados a seguir, a fim de determinar o tamanho amostral e o plano amostral mais adequado. Para isso, foi estimado a variância $\sigma_{\mu}^2 = \frac{1}{N} \sum_{i=1}^N y_i$ da pontuação e a variância nos estratos $\sigma_{\mu h}^2 = \frac{1}{N_h} \sum_{i=1}^{N_h} y_{ih}$, onde $N = `r N`$ é o número de candidatos, $N_h$ é o tamanho populacional do h-ésimo estrato, $y_i$ é a pontuação do i-ésimo candiadato e $y_{ih}$ é a pontuação do i-ésimo candidato no h-ésimo estrato. A alocação dos estratos foi feita segundo alocação proporcional (AP). Nesse tipo de alocação, o tamanho amostral do h-ésimo estrato é $n_h = n \frac{N_h}{N}$.
 
 Os estratos escolhidos foram as respostas agrupadas da Questão 14 no questionário que cada candidato deveria responder. Essa questão é como segue: "Somando a sua renda com a renda das pessoas que moram com você, quanto é, aproximadamente, a renda familiar mensal? O valor do salário mínimo (SM) é de R$ 724,00". As respostas agrupadas determinam os seguintes estratos: 1 - dados faltantes, 2 - até 5 SM, 3 - entre 5 e 10 SM e 4 - mais que 10 SM.
 
-A amostra piloto resultou em uma estimativa de $\hat{\sigma_{\mu}^2} = \hat{\sigma_d^2} + \hat{\sigma_e^2} = `r var_d + var_e`$ **(HELP WANTED)** para a variância $\sigma_{\mu}^2$, onde $\hat{\sigma_d^2} = \sum_{i=1}^H \frac{N_h}{N}\hat{\sigma_h^2}$ é a variância estimada no h-ésimo estrato e $\hat{\sigma_e^2} = \sum_{i=1}^H \frac{N_h}{N}(\hat{\mu}_h-\mu)^2$ é a variância estimada das médias dos estratos. 
-De posse dessa informação, para realizar AE com AP e erro de estimativa $\delta = `r delta`$, é preciso um tamanho de amostra $n$ de pelo menos $n \geq \frac{z_{`r gamma`}^2}{\delta^2} \sum_{i=1}^H\frac{N_h}{N} \hat{\sigma^2}$ **(OU SERIA S^2 AQUI?)** para garantir que $P(|\mu - \hat{\mu}| \leq \delta) \geq `r gamma`$ \cite{bolfarine2005elementos}, onde $z_{`r gamma`}$ é o `r gamma`-quantil da normal padrão. Portanto, para os dados coletados, são necessárias pelo menos `r n_AE_AP` unidades amostrais.
+A amostra piloto resultou em uma estimativa de $\hat{\sigma_{\mu}^2} = \hat{\sigma_d^2} + \hat{\sigma_e^2} = `r mu_s2hat_d_piloto + mu_s2hat_e_piloto`$ **USAMOS ASSs DEVEMOS UTILIZAR ESTIMADOR NAO VICIADO S^2, NAO SIGMA^2** **(HELP WANTED)** para a variância $\sigma_{\mu}^2$, onde $\hat{\sigma_d^2} = \sum_{i=1}^H \frac{N_h}{N}\hat{\sigma_h^2}$ é a variância estimada no h-ésimo estrato e $\hat{\sigma_e^2} = \sum_{i=1}^H \frac{N_h}{N}(\hat{\mu}_h-\mu)^2$ é a variância estimada das médias dos estratos. 
+De posse dessa informação, para realizar AE com AP e erro de estimativa $\delta = `r mu_delta`$, é preciso um tamanho de amostra $n$ de pelo menos $n \geq \frac{z_{`r mu_gamma`}^2}{\delta^2} \sum_{i=1}^H\frac{N_h}{N} \hat{\sigma^2}$ **(OU SERIA S^2 AQUI?)** para garantir que $P(|\mu - \hat{\mu}| \leq \delta) \geq `r mu_gamma`$ \cite{bolfarine2005elementos}, onde $z_{`r mu_gamma`}$ é o `r mu_gamma`-quantil da normal padrão. Portanto, para os dados coletados, são necessárias pelo menos `r mu_n` unidades amostrais.
 
-Por outro lado, uma amostragem aleatória simples sem reposição (AASs) requer $\Big(\frac{\delta^2}{\hat{s^2}z_{`r gamma`}} + \frac{1}{N}\Big)^{-1}$ unidades amostrais para garantir que $P(|\mu - \hat{\mu}| \leq \delta) \geq `r gamma`$ \cite{bolfarine2005elementos}, onde $s_{\mu}^2 = \frac{n\sigma^2}{n-1}$. Para os dados observados, esse plano amostral precisa de `r n_AASs` unidades amostrais, número maior que no caso AE com AP. Portanto, é mais vantajoso realizar AE com AP. 
+Por outro lado, uma amostragem aleatória simples sem reposição (AASs) requer $\Big(\frac{\delta^2}{\hat{s^2}z_{`r mu_gamma`}} + \frac{1}{N}\Big)^{-1}$ unidades amostrais para garantir que $P(|\mu - \hat{\mu}| \leq \delta) \geq `r mu_gamma`$ \cite{bolfarine2005elementos}, onde $s_{\mu}^2 = \frac{n\sigma^2}{n-1}$. Para os dados observados, esse plano amostral precisa de `r mu_n_ASSs` unidades amostrais, número maior que no caso AE com AP. Portanto, é mais vantajoso realizar AE com AP. 
 
-É possível tornar a amostragem ainda mais robusta, utilizando a alocação ótima de Neyman (AON), que minimiza a variância da estimativa $\hat{\mu} = \sum$  para $\mu$ quando o custo de amostragem é homogêneo entre os estratos. Usando AON, temos que $n_h = n \frac{N_h\sigma_h}{\sum_{i=1}^HN_h\sigma_h}$ \cite{bolfarine2005elementos}. Como $\sigma_h$ não são valores conhecidos, foi usado $\hat{\sigma_h^2}$. As informações obtidas da amostra piloto e referentes à amostragem AE com AON estão resumidas na Tabela \ref{tab:resumo-media}. Observe que $n = `r n`$ tem `r n-n_AE_AP` unidades a mais sob AON, pelo fato de ter sido pego o menor inteiro maior que a expressão que determina $n_h$.
+É possível tornar a amostragem ainda mais robusta, utilizando a alocação ótima de Neyman (AON), que minimiza a variância da estimativa $\hat{\mu} = \sum$  para $\mu$ quando o custo de amostragem é homogêneo entre os estratos. Usando AON, temos que $n_h = n \frac{N_h\sigma_h}{\sum_{i=1}^HN_h\sigma_h}$ \cite{bolfarine2005elementos}. Como $\sigma_h$ não são valores conhecidos, foi usado $\hat{\sigma_h^2}$. As informações obtidas da amostra piloto e referentes à amostragem AE com AON estão resumidas na Tabela \ref{tab:resumo-media}.
 
 \begin{table}[!h]
 \centering
@@ -175,10 +175,10 @@ Por outro lado, uma amostragem aleatória simples sem reposição (AASs) requer 
 \begin{tabular}{l|lll}
 $h$ & $N_h$ & $\hat{\sigma_h^2}$ & $n_h$ \\
 \hline
-1 & `r N_h[1]` & `r stats$var_h[1]` & `r n_h[1]` \\
-2 & `r N_h[2]` & `r stats$var_h[2]` & `r n_h[2]` \\
-3 & `r N_h[3]` & `r stats$var_h[3]` & `r n_h[3]` \\
-4 & `r N_h[4]` & `r stats$var_h[4]` & `r n_h[4]` \\
+1 & `r mu_N_h[1]` & `r mu_estat_piloto$s2hat_h[1]` & `r mu_estat_piloto$n_h[1]` \\
+2 & `r mu_N_h[2]` & `r mu_estat_piloto$s2hat_h[2]` & `r mu_estat_piloto$n_h[2]` \\
+3 & `r mu_N_h[3]` & `r mu_estat_piloto$s2hat_h[3]` & `r mu_estat_piloto$n_h[3]` \\
+4 & `r mu_N_h[4]` & `r mu_estat_piloto$s2hat_h[4]` & `r mu_estat_piloto$n_h[4]` \\
 \end{tabular}
 \end{table}
 
