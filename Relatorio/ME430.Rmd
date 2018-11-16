@@ -83,13 +83,11 @@ Este trabalho consiste na aplicação de técnicas aprendidas na disciplina ME43
 
 A Seção \ref{s.descritiva} contém análises descritivas a nível populacional e obtidas por meio de amostras pilotos. A Seção \ref{s.inferencia} apresenta análises inferenciais, estimadores pontuais e intervalos de confiança dos parâmetros de interesse. Essas duas seções são dividas em três subseções cada, uma para cada parâmetro: *Média*, *Proporção* e *Total*, que se referem, respectivamente, aos parâmetros i), ii) e iii).
 
-A principal ferramenta usada foi a linguagem de programação R. Nela, foram utilizados os pacotes: *readr* para leitura de dados; *dplyr*, *magrittr* e *tidyr* para manipulação de dados, *fastkendall* para computar a Correlação de Kendall em $O(n \log(n))$ (o pacote padrão do R calcula em $O(n^2)$) e *psych* para o cômputo da Correlação Policórica. Os códigos produzidos estão disponíveis em https://github.com/victordalla/ME430.
+A principal ferramenta usada foi a linguagem de programação R. Nela, foram utilizados os pacotes: *readr* para leitura de dados; *dplyr*, *magrittr* e *tidyr* para manipulação de dados, *fastkendall* para computar a Correlação de Kendall em $O(n \log(n))$ (o pacote *stats* calcula em $O(n^2)$) e *psych* para o cômputo da Correlação Policórica. Os códigos produzidos estão disponíveis em https://github.com/victordalla/ME430.
 
 
 # Análise Descritiva
 \label{s.descritiva}
-
-Tratamos as análises realizas abaixos como indepentes visto que o âmbito de cada análise são diferentes.
 
 
 ## Média
@@ -106,23 +104,23 @@ mu_dados$Q14[mu_dados$Q14 > 6] <- 4
 
 
 ```{r mu-piloto}
-
 mu_N_h <- mu_dados %>% group_by(Q14) %>% summarise(N_h = n()) %>% .$N_h
 mu_W_h <- mu_N_h / N
 mu_H <- length(mu_N_h)
 
 mu_n_piloto <- 200
-
+# Alocação proporcional
 mu_estrato_piloto <- data.frame(Q14 = c(1, 2, 3, 4),
                                 n_h = c(ceiling(mu_W_h * mu_n_piloto)))
-
 mu_n_piloto <- sum(mu_estrato_piloto$n_h)
 
+# Amostra piloto
 mu_amostra_piloto <- mu_dados %>% nest(-Q14) %>% 
     left_join(mu_estrato_piloto, by = "Q14") %>% 
     mutate(amostra = map2(data, n_h, sample_n)) %>% 
     unnest(amostra)
 
+# Estimativas por estrato
 mu_estat_piloto <- mu_amostra_piloto %>% group_by(Q14) %>%
     summarise(n_h = n(),
               mu_hat_h = mean(TOTAL),
@@ -131,11 +129,13 @@ mu_estat_piloto <- mu_amostra_piloto %>% group_by(Q14) %>%
 mu_estat_piloto$varhat_h <- ((1 - mu_estat_piloto$n_h/mu_N_h) * 
                                  mu_estat_piloto$s2hat_h/mu_estat_piloto$n_h)
 
+# Estimativas
 mu_hat_piloto <- sum(mu_W_h * mu_estat_piloto$mu_hat_h)
+
+# TODO conferir fórmula de s^2
 mu_s2hat_d_piloto <- sum(mu_W_h * mu_estat_piloto$s2hat_h)
 mu_s2hat_e_piloto <- sum(mu_W_h * (mu_estat_piloto$mu_hat_h - mu_hat_piloto)^2)
-mu_s2hat_total_piloto <- mu_s2hat_d_piloto + mu_s2hat_e_piloto
-
+mu_s2hat_piloto <- mu_s2hat_d_piloto + mu_s2hat_e_piloto
 ```
 
 
@@ -145,10 +145,13 @@ mu_gamma <- 0.95
 mu_z_gamma <- qnorm((1 + mu_gamma) / 2)
 
 # tamanhos amostrais
-mu_n_ASSs <- ceiling(1 / ((mu_delta^2 / (mu_z_gamma^2 * mu_s2hat_total_piloto)) + (1/N)))
+# AASs
+mu_n_ASSs <- ceiling(1 / ((mu_delta^2 / (mu_z_gamma^2 * mu_s2hat_piloto)) + (1/N)))
 
+# AE com AP
 mu_n <- ceiling(1 / ((mu_delta^2 / (mu_z_gamma^2 *sum(mu_W_h * mu_estat_piloto$s2hat_h))) + (1/N))) 
 
+# AON
 mu_n_h <- ceiling(mu_n * mu_N_h * sqrt(mu_estat_piloto$s2hat_h) /
                       sum(mu_N_h * sqrt(mu_estat_piloto$s2hat_h)))
 
@@ -194,41 +197,46 @@ invisible(capture.output(cor_fund1_fund2 <- polychoric(table(questionario$Q2, qu
 prop_n_piloto <- 200
 prop_amostra_piloto <- sample_n(questionario, prop_n_piloto)
 
-# Proporcao de alunos de escola pública
+# 1 - estudou todo o ensino fundamental 2 em escola pública,
+# 2 - não estudou todo o ensino fundamental 2 em escola pública
 pub <- questionario[questionario$Q3 == 1, ]$EMPCT
 priv <- questionario[questionario$Q3 != 1, ]$EMPCT
 
 prop_N_h <- c(length(pub), length(priv))
 prop_W_h <- prop_N_h / N
-prop_H <- 2 # quantidade de estratos
+prop_H <- length(prop_N_h) # quantidade de estratos
 
-# Amostra piloto 
-prop_n_h_piloto <- ceiling(prop_W_h * prop_n_piloto) # estrato proporcional
-
+# Alocação proporcional
+prop_n_h_piloto <- ceiling(prop_W_h * prop_n_piloto)
 prop_n_piloto <- sum(prop_n_h_piloto)
 
+# Amostra piloto 
 prop_amostra_pil_h1 <- sample_n(questionario %>% filter(EMPCT %in% pub), prop_n_h_piloto[1])
 prop_amostra_pil_h2 <- sample_n(questionario %>% filter(EMPCT %in% priv), prop_n_h_piloto[2])
 
+# Estimativas
 prop_phat_h_piloto <- c(sum(prop_amostra_pil_h1$Q4 == 1) / nrow(prop_amostra_pil_h1),
                       sum(prop_amostra_pil_h2$Q4 == 1) / nrow(prop_amostra_pil_h2))
 
-prop_s2hat_piloto <- prop_n_h_piloto / (prop_n_h_piloto - 1) * prop_phat_h_piloto * (1 - prop_phat_h_piloto)
+prop_s2hat_h_piloto <- prop_n_h_piloto / (prop_n_h_piloto - 1) * prop_phat_h_piloto * (1 - prop_phat_h_piloto)
 
-varhat_phat_piloto <- (1 - prop_n_h_piloto/N) * prop_s2hat_piloto / prop_n_h_piloto
+# varhat_phat_piloto <- (1 - prop_n_h_piloto/N) * prop_s2hat_h_piloto / prop_n_h_piloto
 
-prop_phat_piloto <- sum(prop_phat_h_piloto * prop_W_h)
+prop_phat_piloto <- sum(prop_W_h * prop_phat_h_piloto)
 prop_s2hat_e_piloto <- sum(prop_W_h * (prop_phat_h_piloto - prop_phat_piloto)^2)
-prop_s2hat_d_piloto <- sum(prop_W_h * prop_s2hat_piloto)
+prop_s2hat_d_piloto <- sum(prop_W_h * prop_s2hat_h_piloto)
+prop_s2hat_piloto <- prop_s2hat_e_piloto + prop_s2hat_d_piloto
 ```
-
+  
 ```{r prop-tam-amostral}
 prop_delta <- 0.01
 prop_gamma <- 0.95
 prop_z_gamma <- qnorm((1 + prop_gamma) / 2)
-prop_n <- ceiling(1 / (prop_delta^2/(prop_z_gamma^2 * sum(prop_W_h * prop_s2hat_piloto)) + 1/N))
 
-prop_n_h <- ceiling(prop_n * prop_N_h * sqrt(prop_s2hat_piloto) / sum(prop_N_h * sqrt(prop_s2hat_piloto)))
+# AP
+prop_n <- ceiling(1 / (prop_delta^2 / (prop_z_gamma^2 * sum(prop_W_h * prop_s2hat_h_piloto)) + 1/N))
+# AON
+prop_n_h <- ceiling(prop_n * prop_N_h * sqrt(prop_s2hat_h_piloto) / sum(prop_N_h * sqrt(prop_s2hat_h_piloto)))
 
 prop_n <- sum(prop_n_h)
 ```
@@ -256,8 +264,8 @@ Com as estatísticas obtidas da amostra piloto estabelecemos nossa margem de err
 $h$ & $N_h$ & $\hat{p}_h$ & $\hat{s_h^2}$ \\
 \hline
 
-1 & `r prop_N_h[1]` & `r prop_phat_h_piloto[1]` & `r prop_s2hat_piloto[1]` \\
-2 & `r prop_N_h[2]` & `r prop_phat_h_piloto[2]` & `r prop_s2hat_piloto[2]` \\
+1 & `r prop_N_h[1]` & `r prop_phat_h_piloto[1]` & `r prop_s2hat_h_piloto[1]` \\
+2 & `r prop_N_h[2]` & `r prop_phat_h_piloto[2]` & `r prop_s2hat_h_piloto[2]` \\
 \end{tabular}
 \end{table}
 
@@ -295,24 +303,27 @@ questionario$Q32C[questionario$Q32C == 5] <- 0
 ```{r total-piloto}
 tau_n_piloto <- 200
 
+# AASs
 tau_amostra_piloto <- sample_n(questionario, tau_n_piloto)
+
+# NA
 tau_amostra_piloto_sem_na <- tau_amostra_piloto %>% filter(!is.na(Q32C))
-
 tau_n_piloto_sem_na <- nrow(tau_amostra_piloto_sem_na)
-
 tau_prop_na <- 1 - (tau_n_piloto_sem_na/tau_n_piloto)
 
+# Estimativas
 tau_hat_piloto <- N * mean(tau_amostra_piloto_sem_na$Q32C)
 tau_s2hat_piloto <- var(tau_amostra_piloto_sem_na$Q32C)
-tau_varhat_piloto <- N^2 * (1 - tau_n_piloto_sem_na/N) * tau_s2hat_piloto / tau_n_piloto_sem_na
+# tau_varhat_piloto <- N^2 * (1 - tau_n_piloto_sem_na/N) * tau_s2hat_piloto / tau_n_piloto_sem_na
 ```
 
 ```{r total-tam-amostral}
 tau_delta = 3500
 tau_gamma <- 0.95
-tau_z_t <- qnorm((1 + tau_gamma) / 2)
-
-tau_n <- 1 / ((tau_delta^2/(N^2*tau_s2hat_piloto^2*tau_z_t^2)) + 1/N)
+tau_z_gamma <- qnorm((1 + tau_gamma) / 2)
+# AASs
+tau_n <- 1 / ((tau_delta^2 / (N^2*tau_s2hat_piloto^2 * tau_z_gamma^2)) + 1/N)
+# Correção levando em conta NAs
 tau_n <- ceiling(tau_n * (1 + tau_prop_na))
 ```
 
@@ -337,6 +348,7 @@ mu_amostra <- mu_dados %>% nest(-Q14) %>%
     mutate(amostra = map2(data, n_h, sample_n)) %>% 
     unnest(amostra)
 
+# Estimativas por estrato
 mu_estat <- mu_amostra %>% group_by(Q14) %>%
     summarise(n_h = n(),
               mu_hat_h = mean(TOTAL),
@@ -346,11 +358,13 @@ mu_estat <- mu_amostra %>% group_by(Q14) %>%
 mu_estat$varhat_h <- ((1 - mu_estat$n_h/mu_N_h) * 
                           mu_estat$s2hat_h/mu_estat$n_h)
 
+# ESTIMATIVA PRINCIPAL
 mu_hat <- sum(mu_W_h * mu_estat$mu_hat_h)
+
 # TODO daqui para baixo está com formula de estrato proporcional e foi utilizado alocacao otima
 mu_s2hat_d <- sum(mu_W_h * mu_estat$s2hat_h)
 mu_s2hat_e <- sum(mu_W_h * (mu_estat$mu_hat_h - mu_hat)^2)
-mu_s2hat_total <- mu_s2hat_d + mu_s2hat_e
+mu_s2hat <- mu_s2hat_d + mu_s2hat_e
 mu_varhat_mu <- sum(mu_W_h * (1 - mu_estat$n_h/mu_N_h) * mu_estat$s2hat_h / mu_estat$n_h)
 # TODO end
 ```
@@ -365,13 +379,15 @@ mu_ic <- c(mu_hat - mu_z_alpha * sqrt(mu_varhat_mu),
 ## Proporção
 
 ```{r prop-amostra}
-# Amostragem final
+# Estratos
 prop_amostra_h1 <- sample_n(questionario %>% filter(EMPCT %in% pub), prop_n_h[1])
 prop_amostra_h2 <- sample_n(questionario %>% filter(EMPCT %in% priv), prop_n_h[2])
 
+# Estimativas por estrato
 prop_phat_h <- c(sum(prop_amostra_h1$Q4 == 1) / nrow(prop_amostra_h1),
             sum(prop_amostra_h2$Q4 == 1) / nrow(prop_amostra_h2))
 
+# ESTIMATIVA PRINCIPAL
 prop_phat <- sum(prop_W_h * prop_phat_h)
 
 prop_s2hat <- prop_n_h / (prop_n_h - 1) * prop_phat_h * (1 - prop_phat_h)
@@ -380,18 +396,18 @@ prop_varhat_phat_h <- (1 - prop_n_h/N) * prop_s2hat / prop_n_h
 
 # http://www.ime.unicamp.br/~cnaber/aula_AE%20P3%20Amost%202S%202018.pdf 
 # Slide 13
-prop_varhat_phat <- sum( (1 - prop_n_h/prop_N_h) * prop_W_h^2 * 
-                             prop_phat_h * (1 - prop_phat_h) / (prop_n_h - 1))
+# prop_varhat_phat <- sum( (1 - prop_n_h/prop_N_h) * prop_W_h^2 * 
+#                              prop_phat_h * (1 - prop_phat_h) / (prop_n_h - 1))
 
 prop_s2hat_e <- sum(prop_W_h * (prop_phat_h - prop_phat)^2)
 prop_s2hat_d <- sum(prop_W_h * prop_phat)
+prop_s2hat <- prop_s2hat_d + prop_s2hat_e
 ```
 
 ```{r prop-int-conf}
 # http://www.ime.unicamp.br/~cnaber/aula_AE%20P3%20Amost%202S%202018.pdf 
 # Slide 18
 # utilizando z_alpha segundo formula do z_gamma no slide 19
-
 prop_z_alpha <- qnorm((1 + prop_gamma)/2)
 prop_ic <- c(prop_phat - prop_z_alpha * sqrt(prop_varhat_phat),
              prop_phat + prop_z_alpha * sqrt(prop_varhat_phat))
@@ -418,9 +434,11 @@ $h$ & $N_h$ & $\hat{p}_h$ & $\hat{Var(\hat{p_h})}$ & $\hat{s_h^2}$  & $n_h$ \\
 
 ```{r total-amostra}
 tau_amostra <- sample_n(questionario, tau_n)
+# NA
 tau_amostra_sem_na <- tau_amostra %>% filter(!is.na(Q32C))
 tau_n_sem_na <- nrow(tau_amostra_sem_na)
 
+# ESTIMATIVA PRINCIPAL
 tau_hat <- N * mean(tau_amostra_sem_na$Q32C)
 tau_s2hat <- var(tau_amostra_sem_na$Q32C)
 tau_varhat <- N^2 * (1 - tau_n_sem_na / N) * tau_s2hat / tau_n_sem_na
