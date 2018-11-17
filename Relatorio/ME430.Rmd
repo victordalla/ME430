@@ -542,6 +542,8 @@ No caso em que $y_i$, $i = 1, ..., N$, assumem somente valores 0 ou 1 sob AE: $\
 
 ## Tamanho amostral e alocação {-}
 
+** SERÁ QUE DEIXA OS TAMANHOS AMOSTRAIS, OU INCORPORA NOS TEXTO??? ACHO MELHOR INCORPORAR**
+
 Sob Amostragem Simples sem reposição: 
 
 \begin{equation} \label{eq:n-aass}
