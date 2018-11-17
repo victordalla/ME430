@@ -489,11 +489,11 @@ $\hat \tau$ & $\hat{Var}(\hat{\tau})$ & $\hat{s^2}$ \\
 # Apêndice {-}
 \label{apendice}
 
-Este Apêndice apresenta expressões e estimadores usados no trabalho. A subseção *Parâmetros populacionais* apresenta as expressões que definem os parâmetros pupolacionais que aparecem no corpo do texto de uma população de tamanho $N$ de valores $y_1, ..., y_N$. A subseção *Estimadores* apresenta os estimadores usados. Finalmente, a subseção *Tamanho amostral e alocação* apresenta as expressões que definem os tamanhos amostrais para alguns planos amostrais e, no caso da Amostragem Estratificada com $H$ estratos, cada um de tamanho $N_h$ e onde $y_{hi}$ é o valor do i-ésimo elemento do h-ésimo estrato, os tamanhos de cada estrato segundo algumas alocações.
+Este Apêndice apresenta expressões e estimadores usados no trabalho. A subseção *Parâmetros populacionais* apresenta as expressões que definem os parâmetros populacionais que aparecem no corpo do texto de uma população de tamanho $N$ de valores $y_1, ..., y_N$. A subseção *Estimadores* apresenta os estimadores usados. Finalmente, a subseção *Tamanho amostral e alocação* apresenta as expressões que definem os tamanhos amostrais para alguns planos amostrais e, no caso da Amostragem Estratificada com $H$ estratos, cada um de tamanho $N_h$ e onde $y_{hi}$ é o valor do i-ésimo elemento do h-ésimo estrato, os tamanhos de cada estrato segundo algumas alocações.
 
 ## Parâmetros populacionais {-}
 
-De modo geral, temos os seguintes parâmetros: 
+De modo geral, temos os seguintes parâmetros para uma população: 
 total $\tau = \sum_{i=1}^N y_i ~\refstepcounter{equation}(\theequation) \label{eq:total}$, 
 média $\mu = \frac{1}{N} \sum_{i=1}^N y_i ~\refstepcounter{equation}(\theequation) \label{eq:media}$, 
 variância $\sigma^2 = \frac{1}{N} \sum_{i=1}^N (y_i - \mu)^2 ~\refstepcounter{equation}(\theequation) \label{eq:var}$ 
@@ -541,8 +541,6 @@ No caso em que $y_i$, $i = 1, ..., N$, assumem somente valores 0 ou 1 sob AE: $\
 
 
 ## Tamanho amostral e alocação {-}
-
-Segundo Bolfarine *et al.* \cite{bolfarine2005elementos}, as seguintes expressões para $n$ garantem que $P(|\mu - \hat{\mu}| \leq \delta) \geq \gamma$, onde $z_{\gamma}$ é o $(\frac{1-\gamma}{2})$-quantil da normal padrão.
 
 Sob Amostragem Simples sem reposição: 
 
