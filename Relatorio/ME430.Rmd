@@ -273,6 +273,9 @@ $h$ & $N_h$ & $\hat{p}_h$ & $\hat{s_h^2}$ & $n_h$ \\
 
 ## Total
 
+
+
+
 ```{r total-descritiva}
 
 # Conferir isso, adicionar isso na analise descritiva que 
@@ -427,6 +430,7 @@ prop_ic <- c(prop_phat - prop_z_alpha * sqrt(prop_varhat_phat),
              prop_phat + prop_z_alpha * sqrt(prop_varhat_phat))
 ```
 
+Utilizando os resultados apresentados na Tabela \ref{tab:inf-prop}, obtem-se o seguinte intervalo de confiança para a proporção IC($p$, $0.95$) = [`r prop_ic[1]`;`r prop_ic[2]`]. 
 
 \begin{table}[!h]
 \centering
@@ -465,6 +469,8 @@ tau_ic <- c(tau_hat - tau_z_alpha * sqrt(tau_varhat),
             tau_hat + tau_z_alpha * sqrt(tau_varhat))
 ```
 
+Utilizando os resultados apresentados na Tabela \ref{ttab:inf-total}, obtem-se o seguinte intervalo de confiança para o total IC($\tau$, $0.95$) = [`r tau_ic[1]`;`r tau_ic[2]`].
+
 \begin{table}[!h]
 \centering
 \caption{Informações da estimação de $\tau$ na amostragem final: $\hat{\tau}$ - total de quartos estimado, $\hat{Var}(\hat{\tau})$ - estimativa da variância do estimador $\hat{\tau}$, $\hat{s}^2$ - variância no estrato.}
@@ -472,7 +478,7 @@ tau_ic <- c(tau_hat - tau_z_alpha * sqrt(tau_varhat),
 \fontsize{11}{13}\selectfont
 
 \begin{tabular}{lll}
-$\hat \tau$ & $\hat{Var}(\hat{\tau})$ & $\hat{s^2}$ \\
+$\hat\tau$ & $\hat{Var}(\hat{\tau})$ & $\hat{s^2}$ \\
 \hline
 `r format(tau_hat, digits=4)` & `r format(tau_varhat, digits=4)` & `r tau_s2hat`
 \end{tabular}
@@ -481,6 +487,32 @@ $\hat \tau$ & $\hat{Var}(\hat{\tau})$ & $\hat{s^2}$ \\
 
 # Conclusões
 
+```{r comparacao}
+
+erro_abs_mu = abs(mu_hat - mean(fase1$TOTAL))
+erro_abs_p = abs(prop_phat -(sum(questionario$Q4 == 1)/nrow(questionario)))
+erro_abs_tau = abs(tau_hat - sum(questionario$Q32C, na.rm = TRUE))
+
+```
+
+\begin{table}[!h]
+\centering
+\caption{Informações da estimativa de cada parâmetro na amostragem final.}
+\label{tab:comparacao}
+\fontsize{11}{13}\selectfont
+
+\begin{tabular}{l|lll}
+Parâmetro & Valor verdadeiro & Estimativa & Erro Absoluto \\
+\hline
+
+$\mu$ & `r mean(fase1$TOTAL)` & `r mu_hat` & `r erro_abs_mu` \\
+$p$ & `r sum(questionario$Q4 == 1)/nrow(questionario)` & `r prop_phat` & `r erro_abs_p` \\
+$\tau$ & `r sum(questionario$Q32C, na.rm = TRUE)` & `r tau_hat` & `r erro_abs_tau`\\
+\end{tabular}
+\end{table}
+
+A Tabela \ref{tab:comparacao} mostra os resultados das estimativas obtidos para cada parâmetro e seus respectivos erros absolutos. 
+
 **Comparar estimativas obtidas com valores verdadeiros. Sugere-se fazer tabela com 1. valor estimado, 2. valor verdadeiro, 3. delta, 4. erro absoluto.**
 
 \bibliographystyle{plain}
@@ -488,7 +520,7 @@ $\hat \tau$ & $\hat{Var}(\hat{\tau})$ & $\hat{s^2}$ \\
 
 # Apêndice {-}
 \label{apendice}
-
+,221
 Este Apêndice apresenta expressões e estimadores usados no trabalho. A subseção *Parâmetros populacionais* apresenta as expressões que definem os parâmetros populacionais que aparecem no corpo do texto de uma população de tamanho $N$ de valores $y_1, ..., y_N$. A subseção *Estimadores* apresenta os estimadores usados. Finalmente, a subseção *Tamanho amostral e alocação* apresenta as expressões que definem os tamanhos amostrais para alguns planos amostrais e, no caso da Amostragem Estratificada com $H$ estratos, cada um de tamanho $N_h$ e onde $y_{hi}$ é o valor do i-ésimo elemento do h-ésimo estrato, os tamanhos de cada estrato segundo algumas alocações.
 
 ## Parâmetros populacionais {-}
