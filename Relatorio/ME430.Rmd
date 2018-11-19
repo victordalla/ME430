@@ -165,11 +165,11 @@ A amostra piloto resultou em uma estimativa de $\hat{s}^2 = `r mu_s2hat_piloto`$
 
 Por outro lado, para realizar AE com AP, os mesmos estratos definidos anteriormente e erro de estimativa $\delta = `r mu_delta`$, é preciso um tamanho de amostra $n \geq \Big(\frac{\delta^2}{z_{\gamma} \sum_{h=1}^H {W_h\hat{s}_h^2}} + \frac{1}{N}\Big)^{-1}$ para garantir que $P(|\mu - \hat{\mu}| \leq \delta) \geq `r mu_gamma`$ \cite{bolfarine2005elementos}. Para os dados observados, $n = `r mu_n_AE_AP`$. Como esse plano amostral requer menos unidades amostrais para obter o mesmo desempenho, é mais vantajoso AE com AP e a estratificação definida acima a AASs.
 
-É possível tornar a amostragem ainda mais robusta, utilizando a alocação ótima de Neyman (AON), que minimiza a variância da estimativa $\hat{\mu}$ quando o custo de amostragem é homogêneo entre os estratos \cite{bolfarine2005elementos}. Usando AON, temos que $n_h = n \frac{N_h\sigma_h}{\sum_{i=1}^HN_h\sigma_h}$ **QUAL A FÓRMULA NO CASO AASs??? USAR O LIVRO SUGERIDO PELO VITINHO**. Como $s_h$ não são valores conhecidos, foi usado $\hat{s}_h^2$. As informações obtidas da amostra piloto e referentes à amostragem AE com AON estão resumidas na Tabela \ref{tab:piloto-media}.
+É possível tornar a amostragem ainda mais robusta, utilizando a alocação ótima de Neyman (AON), que minimiza a variância da estimativa $\hat{\mu}$ quando o custo de amostragem é homogêneo entre os estratos \cite{cochran2007sampling}. Usando AON, temos que $n_h = n \frac{N_h s_h}{\sum_{i=1}^H N_h s_h}$. Como $s_h$ não são valores conhecidos, foi usado $\hat{s}_h^2$. As informações obtidas da amostra piloto e referentes à amostragem AE com AON estão resumidas na Tabela \ref{tab:piloto-media}. Com essa alocação, o tamanho final da amostra é de `r mu_n``devido ao arredondamento tomado para $n_h$ (menor inteiro maior que a expressão que determina $n_h$).
 
 \begin{table}[!h]
 \centering
-\caption{Informações para cada estrato $h$ para estimação de $\mu$, obtidas da amostra piloto: $N_h$ - número de cadidatos no estrato, $\hat{s}_h^2$ - variância no estrato estimada pela amostra piloto, $n_h$ - tamanho amostral do estrato segundo AON para $n = `r mu_n_AE_AP`$.}
+\caption{Informações para cada estrato $h$ para estimação de $\mu$, obtidas da amostra piloto: $N_h$ - número de cadidatos no estrato, $\hat{s}_h^2$ - variância no estrato estimada pela amostra piloto, $n_h$ - tamanho amostral do estrato segundo AON.}
 \label{tab:piloto-media}
 \fontsize{11}{13}\selectfont
 
@@ -212,19 +212,19 @@ prop_n_piloto_final <- sum(prop_n_h_piloto)
 prop_amostra_pil_h1 <- sample_n(questionario %>% filter(EMPCT %in% pub), prop_n_h_piloto[1])
 prop_amostra_pil_h2 <- sample_n(questionario %>% filter(EMPCT %in% priv), prop_n_h_piloto[2])
 
-# Estimativas
+# Estimativas por estrato
 prop_phat_h_piloto <- c(sum(prop_amostra_pil_h1$Q4 == 1) / nrow(prop_amostra_pil_h1),
                       sum(prop_amostra_pil_h2$Q4 == 1) / nrow(prop_amostra_pil_h2))
+prop_s2hat_h_piloto <- prop_n_h_piloto/(prop_n_h_piloto - 1) * prop_phat_h_piloto*(1 - prop_phat_h_piloto)
 
-prop_s2hat_h_piloto <- prop_n_h_piloto / (prop_n_h_piloto - 1) * prop_phat_h_piloto * (1 - prop_phat_h_piloto)
-
+# Estimativas
 prop_phat_piloto <- sum(prop_W_h * prop_phat_h_piloto)
 prop_s2hat_d_piloto <- sum((prop_N_h-1)/(N-1) * prop_s2hat_h_piloto)
 prop_s2hat_e_piloto <- sum(prop_N_h/(N-1) * (prop_phat_h_piloto - prop_phat_piloto)^2)
 prop_s2hat_piloto <- prop_s2hat_e_piloto + prop_s2hat_d_piloto
 
-prop_varhat_phat_h_piloto <- (1 - prop_n_h_piloto/prop_N_h) * prop_s2hat_piloto / prop_n_h_piloto
-prop_varhat_phat_piloto <- sum( (1 - prop_n_h_piloto/prop_N_h) * prop_W_h^2 * prop_phat_h_piloto * (1 - prop_phat_h_piloto) / (prop_n_h_piloto - 1))
+# prop_varhat_phat_h_piloto <- (1 - prop_n_h_piloto/prop_N_h) * prop_s2hat_piloto/prop_n_h_piloto
+# prop_varhat_phat_piloto <- sum((1 - prop_n_h_piloto/prop_N_h) * prop_W_h^2 * prop_phat_h_piloto * (1 - prop_phat_h_piloto) / (prop_n_h_piloto - 1))
 ```
   
 ```{r prop-tam-amostral}
@@ -233,10 +233,10 @@ prop_gamma <- 0.95
 prop_z_gamma <- qnorm((1 + prop_gamma) / 2)
 
 # AP
-prop_n <- ceiling(1 / (prop_delta^2 / (prop_z_gamma^2 * sum(prop_W_h * prop_s2hat_h_piloto)) + 1/N))
+prop_n_AE_AP <- ceiling(1 / (prop_delta^2 / (prop_z_gamma^2 * sum(prop_W_h * prop_s2hat_h_piloto)) + 1/N))
 # AON
-prop_n_h <- ceiling(prop_n * prop_N_h * sqrt(prop_s2hat_h_piloto) / sum(prop_N_h * sqrt(prop_s2hat_h_piloto)))
-# tamamnho amostral corrigido pelo arredondamento
+prop_n_h <- ceiling(prop_n_AE_AP * prop_N_h * sqrt(prop_s2hat_h_piloto) / sum(prop_N_h * sqrt(prop_s2hat_h_piloto)))
+# tamanho amostral corrigido pelo arredondamento
 prop_n <- sum(prop_n_h)
 ```
 
@@ -248,11 +248,11 @@ Sob essa estratificação, selecionamos uma amostra piloto de tamanho `r prop_n_
 
 Segundo as estimativas da amostra piloto, $\hat{s}^2 = \hat{s}_d^2 + \hat{s}_e^2 = `r prop_s2hat_piloto`$. **MOSTRAR SE A AMOSTRA PILOTO CONFIRMA A NOSSA CONJECTURA**.
 
-Assim, para $\delta = `r prop_delta`$ e $\gamma = `r prop_gamma`$, obtemos o tamanho amostral $n = `r prop_n`$ sob AE com AP. Para tornar a amostragem mais eficiente, $n_h$ foi determinado segundo AON, que minimiza a variância da estimativa $\hat{p}$ quando o custo de amostragem é homogêneo entre os estratos \cite{bolfarine2005elementos}. Essas informações também estão contidas na Tabela \ref{tab:piloto-prop}.
+Assim, para $\delta = `r prop_delta`$ e $\gamma = `r prop_gamma`$, obtemos o tamanho amostral $n = `r prop_n_AE_AP`$ sob AE com AP. Para tornar a amostragem mais eficiente, $n_h$ foi determinado segundo AON, que minimiza a variância da estimativa $\hat{p}$ quando o custo de amostragem é homogêneo entre os estratos \cite{bolfarine2005elementos}. O tamanho final da amostra foi de `r prop_n``devido ao arredondamento tomado para $n_h$ (menor inteiro maior que a expressão que determina $n_h$). Essas informações também estão contidas na Tabela \ref{tab:piloto-prop}.
 
 \begin{table}[!h]
 \centering
-\caption{Informações de cada estrato $h$ para estimar $p$, obtidas da amostra piloto: $N_h$ - número de cadidatos no estrato, $\hat{p}_h$ - proporção de canditatos estudaram o ensino medio completo em escolas públicas, $\hat{s}^2_h$ - variância no estrato estimada na amostra piloto, $n_h$ - tamanho amostral do estrato segundo AE com AON para $n = `r prop_n`$.}
+\caption{Informações de cada estrato $h$ para estimar $p$, obtidas da amostra piloto: $N_h$ - número de cadidatos no estrato, $\hat{p}_h$ - proporção estimada de canditatos estudaram o Ensino Médio completo em escolas públicas, $\hat{s}^2_h$ - variância no estrato estimada na amostra piloto, $n_h$ - tamanho amostral do estrato segundo AE com AON.}
 \label{tab:piloto-prop}
 \fontsize{11}{13}\selectfont
 
@@ -302,7 +302,7 @@ tau_amostra_piloto <- sample_n(questionario, tau_n_piloto)
 
 # NA
 tau_total_na <- sum(is.na(tau_amostra_piloto$Q32C))
-tau_prop_na <- tau_total_na / tau_n_piloto
+tau_prop_na <- mean(is.na(tau_amostra_piloto$Q32C))
 tau_amostra_piloto_sem_na <- tau_amostra_piloto %>% filter(!is.na(Q32C))
 tau_n_piloto_sem_na <- nrow(tau_amostra_piloto_sem_na)
 
@@ -327,7 +327,7 @@ Para esta subseção, $y_i, ..., y_N$, como definidos no Apêndice, é o número
 
 São observadas dois problemas que dificultam a estimação de $\tau$. A primeira diz respeito à limitação dos dados: na pergunta do questionário referente à quantidades de quartos em sua casa (Questão 32C), o candidato podia selecionar apenas uma alternativa dentre "1", "2", "3", "4 ou mais" e "não tem". Isso significa que candidatos com 4, 5, 6 ou mais quartos, se responderam corretamente, selecionaram todos "4 ou mais". Daí, só é possível estimar um limite inferior para o total de quartos. O segundo problema foi descoberto na amostra piloto: foram observadas $`r tau_total_na`$ dados faltantes para a Questão 32C. Nesse caso, dados faltantes não trazem informação alguma a respeito do total de quartos, assim, essas observações foram eliminadas da amostra piloto e da amostra final. Desse modo, foi tomado $n = `r tau_n_piloto` - `r tau_total_na` = `r tau_n_piloto_sem_na`$ para todos os cálculos envolvendo o tamanho amostral da amostra piloto.
 
-O subconjunto da amostra piloto que consiste somente de dados completos resultou numa estimativa de $\hat{s}^2 = `r tau_s2hat_piloto`$. Assim, para uma amostragem AASs, são necessárias $n \geq \Big( \frac{\delta^2}{\hat{s}^2z_{\gamma}} + \frac{1}{N} \Big)^{-1} = `r tau_n`$ unidades amostrais para garantir que $P(|\mu - \hat{\mu}| \leq \delta) \geq `r mu_gamma`$ \cite{bolfarine2005elementos}, com $\delta = `r tau_delta`$. No entanto, como observado acima, é estimado que $\frac{`r tau_total_na`}{`r tau_n_piloto`} = `r tau_total_na` / `r tau_n_piloto` = `r tau_prop_na`$ das respostas da Questão 32C estejam sem dados. Assim, o tamanho amostral foi corrigido para $n = \lceil`r tau_n` (1 + `r tau_prop_na`)\lceil = `r tau_n_corrigido`$ para evitar que a quantidade de dados faltantes diminua o tamanho amostral com dados completos de maneira significativa.
+O subconjunto da amostra piloto que consiste somente de dados completos resultou numa estimativa de $\hat{s}^2 = `r tau_s2hat_piloto`$. Assim, para uma amostragem AASs, são necessárias $n \geq \Big( \frac{\delta^2}{\hat{s}^2z_{\gamma}} + \frac{1}{N} \Big)^{-1} = `r tau_n`$ unidades amostrais para garantir que $P(|\mu - \hat{\mu}| \leq \delta) \geq `r mu_gamma`$ \cite{bolfarine2005elementos}, com $\delta = `r tau_delta`$. No entanto, como observado acima, é estimado que $\frac{`r tau_total_na`}{`r tau_n_piloto`} = `r tau_total_na` / `r tau_n_piloto` = `r tau_prop_na`$ das respostas da Questão 32C não tragam informação. Assim, o tamanho amostral foi corrigido para $n = \lceil`r tau_n` (1 + `r tau_prop_na`)\rceil = `r tau_n_corrigido`$ para evitar que a quantidade de dados faltantes diminua o tamanho amostral com dados completos de maneira significativa.
 
 <!-- 
 ################################################################################
@@ -336,7 +336,6 @@ O subconjunto da amostra piloto que consiste somente de dados completos resultou
 # Análise Inferencial
 \label{s.inferencia}
 
-**Apresentar, em cada seção, as estimativas e fazer referência as tabelas. Esta seção é simples.**
 
 ## Média
 
@@ -363,7 +362,7 @@ mu_s2hat_d <- sum((mu_N_h-1)/(N-1) * mu_estat$s2hat_h)
 mu_s2hat_e <- sum(mu_N_h/(N-1) * (mu_estat$mu_hat_h - mu_hat)^2)
 mu_s2hat <- mu_s2hat_d + mu_s2hat_e
 
-# TODO pôr link e slide da fórmula
+# TODO fórmula correta está no Apêndice
 mu_varhat_muhat_h <- (1 - mu_estat$n_h/mu_N_h) * mu_estat$s2hat_h / mu_estat$n_h
 mu_varhat_muhat <- sum(mu_W_h * mu_varhat_muhat_h)
 ```
@@ -460,8 +459,12 @@ tau_n_sem_na <- nrow(tau_amostra_sem_na)
 
 # ESTIMATIVA PRINCIPAL
 tau_hat <- N * mean(tau_amostra_sem_na$Q32C)
+
+# Estimativas
 tau_s2hat <- var(tau_amostra_sem_na$Q32C)
 tau_varhat <- N^2 * (1 - tau_n_sem_na / N) * tau_s2hat / tau_n_sem_na
+tau_total_na <- sum(is.na(tau_amostra$Q32C))
+tau_prop_na <- mean(is.na(tau_amostra$Q32C))
 ```
 
 ```{r total-int-conf}
@@ -471,18 +474,18 @@ tau_ic <- c(tau_hat - tau_z_alpha * sqrt(tau_varhat),
             tau_hat + tau_z_alpha * sqrt(tau_varhat))
 ```
 
-A amostragem final resultou em $\hat{\tau} = `r tau_hat`$ para uma quota inferior do total de quartos nas casas dos candidatos, com variância aproximada de $\hat{Var}(\hat{\tau}_h) = `r tau_varhat`$ e intervalo de confiança de $[`r tau_ic[1]`;`r tau_ic[2]`]$ a um nível de confiança de $95\%$. Essas informações estão sumarizadas na Tabela \ref{tab:inf-tau}.
+Houveram `r tau_total_na` respostas sem informação na amostra. Issso sginifica que foi tomado $n = `r tau_n_corrigido` - `r tau_total_na` = `r tau_n_sem_na`$ para todos os efeitos. A amostragem final resultou em $\hat{\tau} = `r format(tau_hat, digits=4)`$ para uma quota inferior do total de quartos nas casas dos candidatos, com variância aproximada de $\hat{Var}(\hat{\tau}_h) = `r format(tau_varhat, digits=4)`$ e intervalo de confiança de $[`r tau_ic[1]`;`r tau_ic[2]`]$ a um nível de confiança de $95\%$. Essas informações estão sumarizadas na Tabela \ref{tab:inf-tau}.
 
 \begin{table}[!h]
 \centering
-\caption{Informações da estimação de $\tau$ na amostragem final: $\hat{\tau}$ - total de quartos estimado, $\hat{Var}(\hat{\tau})$ - estimativa da variância do estimador $\hat{\tau}$, $\hat{s}^2$ - variância estimada.}
+\caption{Informações da estimação de $\tau$ na amostragem final: $\hat{\tau}$ - total de quartos estimado, $\hat{Var}(\hat{\tau})$ - estimativa da variância do estimador $\hat{\tau}$, $\hat{s}^2$ - variância estimada, NA - proporção estimada de respostas sem informação.}
 \label{tab:inf-tau}
 \fontsize{11}{13}\selectfont
 
-\begin{tabular}{lll}
-$\hat\tau$ & $\hat{Var}(\hat{\tau})$ & $\hat{s}^2$ \\
+\begin{tabular}{llll}
+$\hat\tau$ & $\hat{Var}(\hat{\tau})$ & $\hat{s}^2$ & NA \\
 \hline
-`r format(tau_hat, digits=4)` & `r format(tau_varhat, digits=4)` & `r tau_s2hat`
+`r format(tau_hat, digits=4)` & `r format(tau_varhat, digits=4)` & `r tau_s2hat` & `r tau_prop_na` \\
 \end{tabular}
 \end{table}
 
@@ -499,26 +502,27 @@ tau <- sum(questionario$Q32C, na.rm = TRUE)
 erro_abs_mu <- abs(mu_hat - mu)
 erro_abs_p <- abs(prop_phat - prop)
 erro_abs_tau <- abs(tau_hat - tau)
+
+# outras informações
+tau_prop_na <- mean(is.na(questionario$Q32C))
 ```
 
-A Tabela \ref{tab:comparacao} mostra os resultados das estimativas obtidos para cada parâmetro e seus respectivos erros absolutos. 
-
-**Comparar estimativas obtidas com valores verdadeiros. Sugere-se fazer tabela com 1. valor estimado, 2. valor verdadeiro, 3. delta, 4. erro absoluto.**
+A Tabela \ref{tab:comparacao} mostra os resultados das estimativas obtidos para cada parâmetro e seus respectivos erros absolutos. Nela, observamos que, para $\mu$ e $p$, as estimativas obtidas estão dentro da precisão tomada ao se escolher o tamanho amostral para cada um, ou seja, o erro absoluto é menor que a precisão usada. Já para $\tau$, observa-se que o erro absoluto é maior que a precisão tomada. É possível que isso se deva ao fato de que há `r tau_prop_na` respostas (a nível populacioal) que não trazem informação.
 
 
 \begin{table}[!h]
 \centering
-\caption{Comparação das estimativas com valores reais.}
+\caption{Comparação das estimativas com valores reais. *Parâmetro* é o parâmetro populacional, *Estimativa* é a sua estimativa obtida, *Valor verdadeiro* é seu valor verdadeiro. *Precisão usada* é o $\delta$ respectivo para cada parâmetro determinado na seção Análise Descritiva \ref{s.descritiva} e *Erro absoluto* é calculado como $|\hat{\theta} - \theta|$, onde $\hat{\theta}$ é a estimativa do parâmetro $\theta$.}
 \label{tab:comparacao}
 \fontsize{11}{13}\selectfont
 
 \begin{tabular}{l|llll}
 Parâmetro & Estimativa & Valor verdadeiro & Precisão usada $\delta$ & Erro Absoluto \\
 \hline
-
 $\mu$ & `r mu_hat` & `r mu` & `r mu_delta` & `r erro_abs_mu` \\
 $p$ & `r prop_phat` & `r prop` & `r prop_delta` & `r erro_abs_p` \\
-$\tau$ & `r tau_hat` & `r tau` & `r tau_delta` & `r erro_abs_tau`\\
+tau & `r format(tau_hat, digits=4)` & `r format(tau, digits=4)` & `r format(tau_delta, digits=4)` & `r format(erro_abs_tau, digits=4)` \\
+
 \end{tabular}
 \end{table}
 
@@ -530,80 +534,79 @@ $\tau$ & `r tau_hat` & `r tau` & `r tau_delta` & `r erro_abs_tau`\\
 # Apêndice {-}
 \label{apendice}
 
-Este Apêndice apresenta expressões e estimadores usados no trabalho. A subseção *Parâmetros populacionais* apresenta as expressões que definem os parâmetros populacionais que aparecem no corpo do texto de uma população de tamanho $N$ de valores $y_1, ..., y_N$. A subseção *Estimadores* apresenta os estimadores usados. Finalmente, a subseção *Tamanho amostral e alocação* apresenta as expressões que definem os tamanhos amostrais para alguns planos amostrais e, no caso da Amostragem Estratificada com $H$ estratos, cada um de tamanho $N_h$ e onde $y_{hi}$ é o valor do i-ésimo elemento do h-ésimo estrato, os tamanhos de cada estrato segundo algumas alocações.
+Este Apêndice apresenta expressões e estimadores usados neste trabalho. A subseção *Parâmetros populacionais* apresenta as expressões que definem os parâmetros populacionais que aparecem no corpo do texto de uma população de tamanho $N$ de valores $y_1, ..., y_N$. A subseção *Estimadores* apresenta os estimadores usados. Finalmente, a subseção *Tamanho amostral e alocação* apresenta as expressões que definem os tamanhos amostrais para alguns planos amostrais e, no caso da Amostragem Estratificada com $H$ estratos, cada um de tamanho $N_h$ e onde $y_{hi}$ é o valor do i-ésimo elemento do h-ésimo estrato, os tamanhos de cada estrato segundo algumas alocações.
 
 ## Parâmetros populacionais {-}
 
 De modo geral, temos os seguintes parâmetros para uma população: 
-total $\tau = \sum_{i=1}^N y_i ~\refstepcounter{equation}(\theequation) \label{eq:total}$, 
-média $\mu = \frac{1}{N} \sum_{i=1}^N y_i ~\refstepcounter{equation}(\theequation) \label{eq:media}$, 
-variância $\sigma^2 = \frac{1}{N} \sum_{i=1}^N (y_i - \mu)^2 ~\refstepcounter{equation}(\theequation) \label{eq:var}$ 
-e $s^2 = \frac{1}{N-1} \sum_{i=1}^N (y_i - \mu)^2 ~\refstepcounter{equation}(\theequation) \label{eq:s}$.
+total $\tau = \sum_{i=1}^N y_i ~\refstepcounter{equation}(\theequation) \label{eq:tau}$, 
+média $\mu = \frac{1}{N} \sum_{i=1}^N y_i ~\refstepcounter{equation}(\theequation) \label{eq:mu}$, 
+variância $s^2 = \frac{1}{N-1} \sum_{i=1}^N (y_i - \mu)^2 ~\refstepcounter{equation}(\theequation) \label{eq:s}$.
 
-Sob Amostragem Estratificada, temos que o total do h-ésimo estrato é $\tau_h = \sum_{i=1}^{N_h} y_{hi} ~\refstepcounter{equation}(\theequation) \label{eq:media-h}$, 
-a média do h-ésimo estrato é $\mu_h = \frac{1}{N_h} \sum_{i=1}^{N_h} y_{hi} ~\refstepcounter{equation}(\theequation) \label{eq:media-h}$, 
-as variâncias do h-ésimo estrato são $\sigma_h = \frac{1}{N_h} \sum_{i=1}^{N_h} (y_{hi} - \mu_h)^2 ~\refstepcounter{equation}(\theequation) \label{eq:sigma-h}$ 
-e $s_h = \frac{1}{N_h-1} \sum_{i=1}^{N_h} (y_{hi} - \mu_h)^2 ~\refstepcounter{equation}(\theequation) \label{eq:s-h}$. 
+Sob Amostragem Estratificada, temos que o total do h-ésimo estrato é $\tau_h = \sum_{i=1}^{N_h} y_{hi} ~\refstepcounter{equation}(\theequation) \label{eq:tau-h}$, 
+a média do h-ésimo estrato é $\mu_h = \frac{1}{N_h} \sum_{i=1}^{N_h} y_{hi} ~\refstepcounter{equation}(\theequation) \label{eq:mu-h}$, 
+as variâncias do h-ésimo estrato é $s_h = \frac{1}{N_h-1} \sum_{i=1}^{N_h} (y_{hi} - \mu_h)^2 ~\refstepcounter{equation}(\theequation) \label{eq:s-h}$. 
 
 Assim, sendo $W_h = \frac{N_h}{N}$, temos que 
-$\tau = \sum_{i=1}^H \tau_h ~\refstepcounter{equation}(\theequation) \label{eq:total-es}$, 
-$\mu = \sum_{i=1}^H W_h \mu_h ~\refstepcounter{equation}(\theequation) \label{eq:media-es}$, 
-$\sigma^2 = \sigma_d^2 + \sigma_e^2 ~\refstepcounter{equation}(\theequation) \label{eq:var-es}$ 
+$\tau = \sum_{i=1}^H \tau_h ~\refstepcounter{equation}(\theequation) \label{eq:tau-es}$, 
+$\mu = \sum_{i=1}^H W_h \mu_h ~\refstepcounter{equation}(\theequation) \label{eq:mu-es}$, 
 e $s^2 = s_d^2 + s_e^2 ~\refstepcounter{equation}(\theequation) \label{eq:s-es}$, 
-onde $\sigma_d^2 = \sum_{i=1}^H W_h \sigma_h^2 ~\refstepcounter{equation}(\theequation) \label{eq:sigma-d}$, 
-$\sigma_e^2 = \sum_{i=1}^H W_h (\mu_h - \mu)^2 ~\refstepcounter{equation}(\theequation) \label{eq:sigma-e}$, 
-$s_d^2 = \sum_{i=1}^H \frac{N_h-1}{N-1} s_h^2 ~\refstepcounter{equation}(\theequation) \label{eq:s-d}$, 
-$s_e^2 = \sum_{i=1}^H \frac{N_h}{N-1} (\mu_h - \mu)^2 ~\refstepcounter{equation}(\theequation) \label{eq:s-e}$.
+onde $s_d^2 = \sum_{i=1}^H \frac{N_h-1}{N-1} s_h^2 ~\refstepcounter{equation}(\theequation) \label{eq:s-d}$ 
+e $s_e^2 = \sum_{i=1}^H \frac{N_h}{N-1} (\mu_h - \mu)^2 ~\refstepcounter{equation}(\theequation) \label{eq:s-e}$.
 
 Se $y_i$, $i = 1, ..., N$, assumem somente valores 0 ou 1, 
-então $p = \mu ~\refstepcounter{equation}(\theequation) \label{eq:p}$ é uma proporção, 
-$\sigma^2 = p(1-p) ~\refstepcounter{equation}(\theequation) \label{eq:sigma-p}$ 
-e $s^2 = \frac{N}{N-1} p(1-p) ~\refstepcounter{equation}(\theequation) \label{eq:s-p}$. E, no caso da Amostragem Estratificada, 
-$p_h = \mu_h ~\refstepcounter{equation}(\theequation) \label{eq:p-h}$ é a proporção do h-ésimo estrato, 
-$\sigma_h^2 = p_h(1-p_h) ~\refstepcounter{equation}(\theequation) \label{eq:sigma-p-h}$ 
-e $s_h^2 = \frac{N}{N-1} \sigma_h^2 ~\refstepcounter{equation}(\theequation) \label{eq:s-p-h}$.
+então $p = \mu ~\refstepcounter{equation}(\theequation) \label{eq:p}$ é uma proporção e $s^2 = \frac{N}{N-1} p(1-p) ~\refstepcounter{equation}(\theequation) \label{eq:s-p}$. E, no caso da Amostragem Estratificada, 
+$p_h = \mu_h ~\refstepcounter{equation}(\theequation) \label{eq:p-h}$ é a proporção no h-ésimo estrato, e $s_h^2 = \frac{N_h}{N_h-1} p_h(1-p_h) ~\refstepcounter{equation}(\theequation) \label{eq:s-p-h}$.
 
 
 ## Estimadores {-}
 
-Os seguintes estimadores se referem a uma amostra de tamanho $n$.
+Os seguintes estimadores se referem a uma amostra $Y_1, ... Y_n$ de tamanho $n$ e, no caso de Amostragem Estratificada, $H$ amostras $Y_{h1}, ..., Y_{hn_h}$, $h = 1, ..., H$, de tamanho $n_h$ cada uma.
 
 Sob Amostragem Simples sem reposição:
-$\hat{\mu} = \frac{1}{n} \sum_{i=1}^n Y_i ~\refstepcounter{equation}(\theequation) \label{eq:media-hat}$
-$\hat{\tau} = N\hat{\mu} ~\refstepcounter{equation}(\theequation) \label{eq:total-hat}$ e 
-$\hat{s}^2 = \frac{1}{n-1} \sum_{i=1}^n (Y_i - \hat{\mu})^2 ~\refstepcounter{equation}(\theequation) \label{eq:s-hat}$.
+$\hat{\mu} = \frac{1}{n} \sum_{i=1}^n Y_i ~\refstepcounter{equation}(\theequation) \label{eq:mu-hat}$, 
+$\hat{\tau} = N\hat{\mu} ~\refstepcounter{equation}(\theequation) \label{eq:tau-hat}$ e 
+$\hat{s}^2 = \frac{1}{n-1} \sum_{i=1}^n (Y_i - \hat{\mu})^2 ~\refstepcounter{equation}(\theequation) \label{eq:s-hat}$. Para $\hat{\tau}$, temos que $\hat{Var}(\hat{\tau}) = N^2(1-\frac{n}{N}) \frac{\hat{s}^2}{n} ~\refstepcounter{equation}(\theequation) \label{eq:varhat-tauhat}$.
 
 Sob Amostragem Estratificada: 
-$\hat{\mu}_h = \frac{1}{N_h} \sum_{i=1}^{N_h} Y_{ih} ~\refstepcounter{equation}(\theequation) \label{eq:media-h-hat}$, 
-$\hat{\mu} = \sum_{i=h}^H W_h \hat{\mu}_h ~\refstepcounter{equation}(\theequation) \label{eq:mu-hat-es}$, 
-$\hat{s}^2$ **QUAL A FÓRMULA NO CASO AASs??? USAR O LIVRO SUGERIDO PELO VITINHO**.
+$\hat{\mu}_h = \frac{1}{N_h} \sum_{i=1}^{N_h} Y_{ih} ~\refstepcounter{equation}(\theequation) \label{eq:mu-h-hat}$, 
+$\hat{\mu}_{es} = \sum_{i=h}^H W_h \hat{\mu}_h ~\refstepcounter{equation}(\theequation) \label{eq:mu-hat-es}$, 
+$\hat{s}_h^2 = \frac{1}{n_h-1} \sum_{i=1}^{n_h} (Y_{hi} - \mu_h)^2 ~\refstepcounter{equation}(\theequation) \label{eq:s-h-hat}$ 
+e $\hat{s}_{es}^2 = \hat{s}_d^2 + \hat{s}_e^2 ~\refstepcounter{equation}(\theequation) \label{eq:s-es-hat}$, 
+onde $\hat{s}_d^2 = \sum_{i=1}^H \frac{n_h-1}{n-1} \hat{s}_h^2 ~\refstepcounter{equation}(\theequation) \label{eq:s-d-hat}$ 
+e $\hat{s}_e^2 = \sum_{i=1}^H \frac{n_h}{n-1} (\hat{\mu}_h - \hat{\mu})^2 ~\refstepcounter{equation}(\theequation) \label{eq:s-e-hat}$. 
+Para $\hat{\mu}_{es}$, temos que $\hat{Var}(\hat{\mu}_{es}) = \sum_{h=1}^H W_h^2 \hat{Var}(\hat{\mu}_h)~\refstepcounter{equation}(\theequation) \label{eq:varhat-mueshat}$, 
+onde $\hat{Var}(\hat{\mu}_h) = (1 - \frac{n_h}{N_h}) \hat{s}_h^2 ~\refstepcounter{equation}(\theequation) \label{eq:varhat-muhhat}$.
 
-No caso em que $y_i$, $i = 1, ..., N$, assumem somente valores 0 ou 1 sob AE: $\hat{p}$, $\hat{p}_h$, $\hat{s}^2$ e $\hat{s}_h^2$ têm a mesma forma que $\hat{\mu}$, $\hat{\mu}_h$, $\hat{\mu}^2$ e $\hat{\mu}_h^2$, respectivamente $~\refstepcounter{equation}(\theequation) \label{eq:p-hat}$.
+No caso em que $y_i$, $i = 1, ..., N$, assumem somente valores 0 ou 1 sob AE: $\hat{p}$, $\hat{p}_h$, $\hat{s}^2$, $\hat{s}_h^2$ e $\hat{Var}(\hat{p})$ têm a mesma forma que $\hat{\mu}$, $\hat{\mu}_h$, $\hat{s}^2$, $\hat{s}_h^2$ e $\hat{Var}(\hat{\mu})$, respectivamente $~\refstepcounter{equation}(\theequation) \label{eq:p-hat}$.
 
 
 ## Tamanho amostral e alocação {-}
 
-** SERÁ QUE DEIXA OS TAMANHOS AMOSTRAIS, OU INCORPORA NOS TEXTO??? ACHO MELHOR INCORPORAR**
+**SERÁ QUE DEIXA OS TAMANHOS AMOSTRAIS, OU INCORPORA NOS TEXTO??? ACHO MELHOR INCORPORAR**
 
-Sob Amostragem Simples sem reposição: 
+Sob Amostragem Simples sem reposição \cite{cochran2007sampling}: 
 
 \begin{equation} \label{eq:n-aass}
 n = \Big\lceil \Big( \frac{\delta^2}{\hat{s}^2z_{\gamma}} + \frac{1}{N} \Big)^{-1} \Big\rceil
 \end{equation}
 
-Sob Amostragem Estratificada e Alocação Propocional **QUAL A FÓRMULA NO CASO AASs??? USAR O LIVRO SUGERIDO PELO VITINHO**: 
-
-\begin{equation} \label{eq:n-estrat}
-n = \Bigg\lceil \frac{1}{\frac{\delta^2}{z_{\gamma} \sum_{h=1}^H {W_h\hat{s}_h^2}} + \frac{1}{N}} \Bigg\rceil
-\end{equation}
-
-Ainda sob Amostragem Estratificada e tomando o menor inteiro maior que e expressção que determina $n_h$ para todo estrato, a Alocação Proporcional determina que  **QUAL A FÓRMULA NO CASO AASs??? USAR O LIVRO SUGERIDO PELO VITINHO**
+A Alocação Propocional, tomando o menor inteiro maior que a expressão, determina
 
 \begin{equation} \label{eq:n-h-ap}
 n_h = \lceil n W_h \rceil
 \end{equation}
 
-A Alocação Ótima de Neyman determina que  **QUAL A FÓRMULA NO CASO AASs??? USAR O LIVRO SUGERIDO PELO VITINHO**
-\begin{equation} \label{eq:n-h-aon}
-n_h = \Big\lceil n \frac{N_h \hat{s}_h}{\sum_{h=1}^H {N_h \hat{s}_h}}\Big\rceil
+e, sob AASs \cite{cochran2007sampling},  
+
+\begin{equation} \label{eq:n-ap}
+n = \Bigg\lceil \frac{1}{\frac{\delta^2}{z_{\gamma} \sum_{h=1}^H {W_h\hat{s}_h^2}} + \frac{1}{N}} \Bigg\rceil
 \end{equation}
+
+
+A Alocação Ótima de Neyman, sob AASs e tomando o menor inteiro maior que a expressão, determina a alocação \cite{cochran2007sampling}
+
+\begin{equation} \label{eq:n-h-aon}
+n_h = \Big\lceil n \frac{N_h s_h}{\sum_{h=1}^H {N_h s_h}}\Big\rceil
+\end{equation}
+
