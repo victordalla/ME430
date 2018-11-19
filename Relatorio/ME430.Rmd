@@ -521,7 +521,7 @@ Parâmetro & Estimativa & Valor verdadeiro & Precisão usada $\delta$ & Erro Abs
 \hline
 $\mu$ & `r mu_hat` & `r mu` & `r mu_delta` & `r erro_abs_mu` \\
 $p$ & `r prop_phat` & `r prop` & `r prop_delta` & `r erro_abs_p` \\
-tau & `r format(tau_hat, digits=4)` & `r format(tau, digits=4)` & `r format(tau_delta, digits=4)` & `r format(erro_abs_tau, digits=4)` \\
+$\tau$ & `r format(tau_hat, digits=4)` & `r format(tau, digits=4)` & `r format(tau_delta, digits=4)` & `r format(erro_abs_tau, digits=4)` \\
 
 \end{tabular}
 \end{table}
