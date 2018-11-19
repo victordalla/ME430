@@ -512,7 +512,7 @@ A Tabela \ref{tab:comparacao} mostra os resultados das estimativas obtidos para 
 
 \begin{table}[!h]
 \centering
-\caption{Comparação das estimativas com valores reais. *Parâmetro* é o parâmetro populacional, *Estimativa* é a sua estimativa obtida, *Valor verdadeiro* é seu valor verdadeiro. *Precisão usada* é o $\delta$ respectivo para cada parâmetro determinado na seção Análise Descritiva \ref{s.descritiva} e *Erro absoluto* é calculado como $|\hat{\theta} - \theta|$, onde $\hat{\theta}$ é a estimativa do parâmetro $\theta$.}
+\caption{Comparação das estimativas com valores reais. \textit{Parâmetro} é o parâmetro populacional, \textit{Estimativa} é a sua estimativa obtida, \textit{Valor verdadeiro} é seu valor verdadeiro. \textit{Precisão usada} é o $\delta$ respectivo para cada parâmetro determinado na seção Análise Descritiva \ref{s.descritiva} e \textit{Erro absoluto} é calculado como $|\hat{\theta} - \theta|$, onde $\hat{\theta}$ é a estimativa do parâmetro $\theta$.}
 \label{tab:comparacao}
 \fontsize{11}{13}\selectfont
 
