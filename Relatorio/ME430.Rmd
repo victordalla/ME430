@@ -204,21 +204,18 @@ $h$ & $W_h$ & $\hat{\mu}_h$ & $\hat{s}_h^2$ & $n_h$ \\
 \end{tabular}
 \end{table}
 
-```{r plot, fig.cap = "Gráfico de barras para a pontuação média dos candidatos na primeira fase agrupada por estrato. A pontuação média foi estimada através da amostra piloto. \\label{fig:mu-bar}", fig.height=2.5,fig.width=5, fig.pos='H'}
-grafico <- group_by(mu_amostra_piloto, Q14) %>% 
-  summarise(Media = mean(TOTAL))
+```{r plot, fig.cap = "Boxplot da pontuação dos candidatos na primeira fase agrupada por estrato. Dados obtidos da amostra piloto. \\label{fig:mu-bar}", fig.height=3,fig.width=5, fig.pos='H'}
 
-grafico$Q14[grafico$Q14 == 1] <- "Dados faltantes" 
-grafico$Q14[grafico$Q14 == 2] <- "Até 5 SM"
-grafico$Q14[grafico$Q14 == 3] <- "Entre 5 e 10 SM"
-grafico$Q14[grafico$Q14 == 4] <- "Mais que 10 SM"
-
-grafico %>% ggplot(aes(x = reorder(Q14, Media), y = Media)) + 
-  geom_bar(stat = "identity", width = 0.5) +
-  xlab("Estrato") + 
-  ylab("Pontuação média na primeira fase") +
-  ggtitle("Pontuação média por estrato na primeira fase.") +
-  ylim(c(0,80))
+teste <-  mu_amostra_piloto
+teste$Q14[teste$Q14 == 1] <- "Dados faltantes" 
+teste$Q14[teste$Q14 == 2] <- "Até 5 SM"
+teste$Q14[teste$Q14 == 3] <- "Entre 5 e 10 SM"
+teste$Q14[teste$Q14 == 4] <- "Mais que 10 SM"
+  ggplot(teste, aes(x= Q14, y= TOTAL)) +
+  geom_boxplot() +
+    xlab("Estratos") + 
+    ylab("Pontuação total dos candidatos") +
+    ggtitle("Boxplot da pontuação separado por estrato") 
 ```
 
 
