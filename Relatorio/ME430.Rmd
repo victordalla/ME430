@@ -177,17 +177,17 @@ Por outro lado, para realizar AE com AP, os mesmos estratos definidos anteriorme
 
 \begin{table}[!h]
 \centering
-\caption{Informações para cada estrato $h$ para estimação de $\mu$, obtidas da amostra piloto: $N_h$ - número de cadidatos no estrato, $\hat{s}_h^2$ - variância no estrato estimada pela amostra piloto, $n_h$ - tamanho amostral do estrato segundo AON.}
+\caption{Informações para cada estrato $h$ para estimação de $\mu$, obtidas da amostra piloto: $W_h$ - número de cadidatos no estrato, $\hat{s}_h^2$ - variância no estrato estimada pela amostra piloto, $n_h$ - tamanho amostral do estrato segundo AON.}
 \label{tab:piloto-media}
 \fontsize{11}{13}\selectfont
 
 \begin{tabular}{l|llll}
-$h$ & $N_h$ & $\hat{\mu}_h$ & $\hat{s}_h^2$ & $n_h$ \\
+$h$ & $W_h$ & $\hat{\mu}_h$ & $\hat{s}_h^2$ & $n_h$ \\
 \hline
-1 & `r mu_N_h[1]` & `r mu_estat_piloto$mu_hat_h[1]` & `r mu_estat_piloto$s2hat_h[1]` & `r mu_n_h[1]` \\
-2 & `r mu_N_h[2]` & `r mu_estat_piloto$mu_hat_h[2]` & `r mu_estat_piloto$s2hat_h[2]` & `r mu_n_h[2]` \\
-3 & `r mu_N_h[3]` & `r mu_estat_piloto$mu_hat_h[3]` & `r mu_estat_piloto$s2hat_h[3]` & `r mu_n_h[3]` \\
-4 & `r mu_N_h[4]` & `r mu_estat_piloto$mu_hat_h[4]` & `r mu_estat_piloto$s2hat_h[4]` & `r mu_n_h[4]` \\
+1 & `r mu_W_h[1]` & `r mu_estat_piloto$mu_hat_h[1]` & `r mu_estat_piloto$s2hat_h[1]` & `r mu_n_h[1]` \\
+2 & `r mu_W_h[2]` & `r mu_estat_piloto$mu_hat_h[2]` & `r mu_estat_piloto$s2hat_h[2]` & `r mu_n_h[2]` \\
+3 & `r mu_W_h[3]` & `r mu_estat_piloto$mu_hat_h[3]` & `r mu_estat_piloto$s2hat_h[3]` & `r mu_n_h[3]` \\
+4 & `r mu_W_h[4]` & `r mu_estat_piloto$mu_hat_h[4]` & `r mu_estat_piloto$s2hat_h[4]` & `r mu_n_h[4]` \\
 \end{tabular}
 \end{table}
 
@@ -262,24 +262,24 @@ Para esta subseção, $y_i, ..., y_N$, como definidos no Apêndice, é 1 se o ca
 
 A nível populacional, observa-se que existe uma correlação de `r cor_fund1_fund2` entre as respostas das Questões 2 ("Onde você cursou o ensino fundamental 1?") e questõa 3 ("Onde você cursou o ensino fundamental 2?"). Assim, conjecturamos que existe uma correlação positiva entre alunos que estudaram completamente em escolas públicas no ensino fundamental 2 e ensino médio. Por isso, para estimar $p$, a proporção de candidatos que estudaram todo o ensino médio em escolas públicas, é proposta a estratificação da população em dois estratos ($H=2$): 1 - candidatos que cursaram o ensino fundamental 1 por completo em escolas públicas e 2 - candidatos restantes.
 
-Sob essa estratificação, selecionamos uma amostra piloto de tamanho `r prop_n_piloto` sob AE com AP e verificamos a conjectura feita anteriormente. O tamanho final da amostra piloto foi de `r prop_n_piloto_final` devido ao arredondamento feito para $n_h$. Essa amostra confirmou a conjectura feita, pois foi obtido uma correlação policórica de `r cor_fund2_ensmed` entre alunos que estudaram completamente em escolas públicas no ensino fundamental 2 e ensino médio. A Tabela \ref{tab:piloto-prop} apresenta outras estatísticas da amostra piloto.
+Sob essa estratificação, foi selecionada uma amostra piloto de tamanho `r prop_n_piloto` sob AE com AP e verificamos a conjectura feita anteriormente. O tamanho final da amostra piloto foi de `r prop_n_piloto_final` devido ao arredondamento feito para $n_h$ (menor inteiro maior que a expressão que determina $n_h$). Essa amostra confirmou a conjectura feita, pois foi obtido uma correlação policórica de `r cor_fund2_ensmed` entre alunos que estudaram completamente em escolas públicas no ensino fundamental 2 e ensino médio. A Tabela \ref{tab:piloto-prop} apresenta outras estatísticas da amostra piloto.
 
-A amostra piloto resultou em uma estimativa de $\hat{s}_{es}^2 = `r format(prop_s2hat_piloto)`$. Assim, para realizar AE com AP, os mesmos estratos definidos anteriormente e erro de estimativa $\delta = `r mu_delta`$, é preciso um tamanho de amostra $n \geq \Big(\frac{\delta^2}{z_{\gamma} \sum_{h=1}^H {W_h\hat{s}_h^2}} + \frac{1}{N}\Big)^{-1}$ para garantir que $P(|p - \hat{p}_{es}| \leq \delta) \geq `r mu_gamma`$ \cite{bolfarine2005elementos}. Para os dados observados, $n = `r prop_n_AE_AP`$.
+A amostra piloto resultou em uma estimativa de $\hat{s}_{es}^2 = `r format(prop_s2hat_piloto)`$. Assim, para realizar AE com AP, os mesmos estratos definidos anteriormente e erro de estimativa $\delta = `r prop_delta`$, é preciso um tamanho de amostra $n \geq \Big(\frac{\delta^2}{z_{\gamma} \sum_{h=1}^H {W_h\hat{s}_h^2}} + \frac{1}{N}\Big)^{-1}$ para garantir que $P(|p - \hat{p}_{es}| \leq \delta) \geq `r mu_gamma`$ \cite{bolfarine2005elementos}. Para os dados observados, $n = `r prop_n_AE_AP`$.
 
-Para tornar a amostragem mais eficiente, $n_h$ foi determinado segundo AON, que minimiza a variância da estimativa $\hat{p}_{es}$ quando o custo de amostragem é homogêneo entre os estratos \cite{bolfarine2005elementos}. O tamanho final da amostra foi de `r prop_n``devido ao arredondamento tomado para $n_h$ (menor inteiro maior que a expressão que determina $n_h$). Essas informações também estão contidas na Tabela \ref{tab:piloto-prop}.
+Para tornar a amostragem mais eficiente, $n_h$ foi determinado segundo AON, que minimiza a variância da estimativa $\hat{p}_{es}$ quando o custo de amostragem é homogêneo entre os estratos \cite{bolfarine2005elementos}. O tamanho final da amostra foi de `r prop_n` devido ao arredondamento tomado para $n_h$ (menor inteiro maior que a expressão que determina $n_h$). Essas informações também estão contidas na Tabela \ref{tab:piloto-prop}.
 
 \begin{table}[!h]
 \centering
-\caption{Informações de cada estrato $h$ para estimar $p$, obtidas da amostra piloto: $N_h$ - número de cadidatos no estrato, $\hat{p}_h$ - proporção estimada de canditatos estudaram o ensino médio completo em escolas públicas, $\hat{s}^2_h$ - variância no estrato estimada na amostra piloto, $n_h$ - tamanho amostral do estrato segundo AE com AON.}
+\caption{Informações de cada estrato $h$ para estimar $p$, obtidas da amostra piloto: $W_h$ - número de cadidatos no estrato, $\hat{p}_h$ - proporção estimada de canditatos estudaram o ensino médio completo em escolas públicas, $\hat{s}^2_h$ - variância no estrato estimada na amostra piloto, $n_h$ - tamanho amostral do estrato segundo AE com AON.}
 \label{tab:piloto-prop}
 \fontsize{11}{13}\selectfont
 
 \begin{tabular}{l|llll}
-$h$ & $N_h$ & $\hat{p}_h$ & $\hat{s}_h^2$ & $n_h$ \\
+$h$ & $W_h$ & $\hat{p}_h$ & $\hat{s}_h^2$ & $n_h$ \\
 \hline
 
-1 & `r prop_N_h[1]` & `r prop_phat_h_piloto[1]` & `r prop_s2hat_h_piloto[1]` & `r prop_n_h[1]` \\
-2 & `r prop_N_h[2]` & `r prop_phat_h_piloto[2]` & `r prop_s2hat_h_piloto[2]` & `r prop_n_h[2]` \\
+1 & `r prop_W_h[1]` & `r prop_phat_h_piloto[1]` & `r prop_s2hat_h_piloto[1]` & `r prop_n_h[1]` \\
+2 & `r prop_W_h[2]` & `r prop_phat_h_piloto[2]` & `r prop_s2hat_h_piloto[2]` & `r prop_n_h[2]` \\
 \end{tabular}
 \end{table}
 
@@ -400,7 +400,7 @@ mu_ic <- c(mu_hat - mu_z_alpha * sqrt(mu_varhat_muhat),
              mu_hat + mu_z_alpha * sqrt(mu_varhat_muhat))
 ```
 
-A amostragem final resultou em $\hat{\mu}_{es} = `r mu_hat`$ para a pontuação média dos candidatos, com variância aproximada de $\hat{Var}(\hat{\mu}_{es}) = `r mu_varhat_muhat`$ e intervalo de confiança de $[`r mu_ic[1]`;`r mu_ic[2]`]$ a um nível de confiança de $95\%$. Os resultados por estrato estão disponíveis na Tabela \ref{tab:inf-media}.
+A amostragem final, como definida na subseção *Média* da Seção \ref{s.descritiva}, resultou em $\hat{\mu}_{es} = `r mu_hat`$ para a pontuação média dos candidatos, com variância aproximada de $\hat{Var}(\hat{\mu}_{es}) = `r mu_varhat_muhat`$ e intervalo de confiança de $[`r mu_ic[1]`;`r mu_ic[2]`]$ a um nível de confiança de $95\%$. Os resultados por estrato estão disponíveis na Tabela \ref{tab:inf-media}.
 
 \begin{table}[!h]
 \centering
@@ -457,7 +457,7 @@ prop_ic <- c(prop_phat - prop_z_alpha * sqrt(prop_varhat_phat),
              prop_phat + prop_z_alpha * sqrt(prop_varhat_phat))
 ```
 
-A amostragem final resultou em $\hat{p}_{es} = `r prop_phat`$ para a proporção de candidatos que estudaram completamente em escolas públicas no ensino médio, com variância aproximada de $\hat{Var}(\hat{p}_{es}) = `r prop_varhat_phat`$ e intervalo de confiança de $[`r prop_ic[1]`;`r prop_ic[2]`]$ a um nível de confiança de $95\%$. Os resultados por estrato estão disponíveis na Tabela \ref{tab:inf-prop}.
+A amostragem final, como definida na subseção *Proporção* da Seção \ref{s.descritiva}, resultou em $\hat{p}_{es} = `r prop_phat`$ para a proporção de candidatos que estudaram completamente em escolas públicas no ensino médio, com variância aproximada de $\hat{Var}(\hat{p}_{es}) = `r format(prop_varhat_phat)`$ e intervalo de confiança de $[`r prop_ic[1]`;`r prop_ic[2]`]$ a um nível de confiança de $95\%$. Os resultados por estrato estão disponíveis na Tabela \ref{tab:inf-prop}.
 
 \begin{table}[!h]
 \centering
@@ -501,7 +501,7 @@ tau_ic <- c(tau_hat - tau_z_alpha * sqrt(tau_varhat),
             tau_hat + tau_z_alpha * sqrt(tau_varhat))
 ```
 
-Houveram `r tau_total_na` respostas sem informação na amostra. Issso sginifica que foi tomado $n = `r tau_n_corrigido` - `r tau_total_na` = `r tau_n_sem_na`$ para todos os efeitos. A amostragem final resultou em $\hat{\tau} = `r format(tau_hat, digits=4)`$ para uma quota inferior do total de quartos nas casas dos candidatos, com variância aproximada de $\hat{Var}(\hat{\tau}_h) = `r format(tau_varhat, digits=4)`$ e intervalo de confiança de $[`r tau_ic[1]`;`r tau_ic[2]`]$ a um nível de confiança de $95\%$. Essas informações estão sumarizadas na Tabela \ref{tab:inf-tau}.
+Houveram `r tau_total_na` respostas sem informação na amostra final, que foi definida na subseção *Total* da Seção \ref{s.descritiva}. Issso sginifica que foi tomado $n = `r tau_n_corrigido` - `r tau_total_na` = `r tau_n_sem_na`$ para todos os efeitos. A amostragem final resultou em $\hat{\tau} = `r format(tau_hat)`$ para uma quota inferior do total de quartos nas casas dos candidatos, com variância aproximada de $\hat{Var}(\hat{\tau}_h) = `r format(tau_varhat)`$ e intervalo de confiança de $[`r format(tau_ic[1])`;`r format(tau_ic[2])`]$ a um nível de confiança de $95\%$. Essas informações estão sumarizadas na Tabela \ref{tab:inf-tau}.
 
 \begin{table}[!h]
 \centering
@@ -532,23 +532,25 @@ erro_abs_tau <- abs(tau_hat - tau)
 
 # outras informações
 tau_prop_na <- mean(is.na(questionario$Q32C))
+mu_cv <- sqrt(mu_varhat_muhat)/mu_hat
+prop_cv <- sqrt(prop_varhat_phat)/prop_phat
+tau_cv <- sqrt(tau_varhat)/tau_hat
 ```
 
-A Tabela \ref{tab:comparacao} mostra os resultados das estimativas obtidos para cada parâmetro e seus respectivos erros absolutos. Nela, observamos que, para $\mu$ e $p$, as estimativas obtidas estão dentro da precisão tomada ao se escolher o tamanho amostral para cada um, ou seja, o erro absoluto é menor que a precisão usada. Já para $\tau$, observa-se que o erro absoluto é maior que a precisão tomada. É possível que isso se deva ao fato de que há `r tau_prop_na` respostas (a nível populacioal) que não trazem informação.
-
+Os coeficientes de variação estimados para $\hat{\mu}_{es}$, $\hat{p}$ e $\hat{\tau}$ foram, respectivamente, `r mu_cv`, `r prop_cv` e `r tau_cv`, o que significa que, levando em conta a ordem a magnitude dos dados, o comprimento dos intervalos de confiança gerados por esses estimadores são relativamente pequenos. Além disso, Tabela \ref{tab:comparacao} mostra que para os três parâmetros as estimativas obtidas estão dentro da precisão tomada (ao se escolher o tamanho amostral final), ou seja, o erro absoluto é menor que a precisão usada. Assim, não só os intervalos de confiança obtidos têm comprimentos relativamente pequenos, como contiveram o valor verdadeiro. 
 
 \begin{table}[!h]
 \centering
-\caption{Comparação das estimativas com valores reais. \textit{Parâmetro} é o parâmetro populacional, \textit{Estimativa} é a sua estimativa obtida, \textit{Valor verdadeiro} é seu valor verdadeiro. \textit{Precisão usada} é o $\delta$ respectivo para cada parâmetro determinado na seção Análise Descritiva \ref{s.descritiva} e \textit{Erro absoluto} é calculado como $|\hat{\theta} - \theta|$, onde $\hat{\theta}$ é a estimativa do parâmetro $\theta$.}
+\caption{Comparação das estimativas com valores reais. \textit{Parâmetro} é o parâmetro populacional, \textit{Estimativa} é a sua estimativa obtida, \textit{Valor verdadeiro} é seu valor verdadeiro, \textit{Variância do estimador} é a variância estimada na amostragem final de cada estimador, \textit{Precisão usada} é o $\delta$ respectivo para cada parâmetro determinado na seção \ref{s.descritiva} e \textit{Erro absoluto} é calculado como $|\hat{\theta} - \theta|$, onde $\hat{\theta}$ é a estimativa do parâmetro $\theta$.}
 \label{tab:comparacao}
 \fontsize{11}{13}\selectfont
 
-\begin{tabular}{l|llll}
-Parâmetro & Estimativa & Valor verdadeiro & Precisão usada $\delta$ & Erro Absoluto \\
+\begin{tabular}{l|lllll}
+Parâmetro & Estimativa & Variância do estimador & Valor verdadeiro & Precisão usada $\delta$ & Erro Absoluto \\
 \hline
-$\mu$ & `r mu_hat` & `r mu` & `r mu_delta` & `r erro_abs_mu` \\
-$p$ & `r prop_phat` & `r prop` & `r prop_delta` & `r erro_abs_p` \\
-$\tau$ & `r format(tau_hat, digits=4)` & `r format(tau, digits=4)` & `r format(tau_delta, digits=4)` & `r format(erro_abs_tau, digits=4)` \\
+$\mu$  & `r mu_hat` & `r mu` & `r mu_varhat_muhat` & `r mu_delta` & `r erro_abs_mu` \\
+$p$    & `r prop_phat` & `r prop` & `r format(prop_varhat_phat)` & `r prop_delta` & `r erro_abs_p` \\
+$\tau$ & `r format(tau_hat)` & `r format(tau)` & `r format(tau_varhat)` & `r format(tau_delta)` & `r format(erro_abs_tau)` \\
 
 \end{tabular}
 \end{table}
