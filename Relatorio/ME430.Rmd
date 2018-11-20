@@ -206,12 +206,13 @@ $h$ & $W_h$ & $\hat{\mu}_h$ & $\hat{s}_h^2$ & $n_h$ \\
 
 ```{r plot, fig.cap = "Boxplot da pontuação dos candidatos na primeira fase agrupada por estrato. Dados obtidos da amostra piloto. \\label{fig:mu-bar}", fig.height=3,fig.width=5, fig.pos='H'}
 
-teste <-  mu_amostra_piloto
+teste <- mu_amostra_piloto
 teste$Q14[teste$Q14 == 1] <- "Dados faltantes" 
 teste$Q14[teste$Q14 == 2] <- "Até 5 SM"
 teste$Q14[teste$Q14 == 3] <- "Entre 5 e 10 SM"
 teste$Q14[teste$Q14 == 4] <- "Mais que 10 SM"
-  ggplot(teste, aes(x= Q14, y= TOTAL)) +
+
+ggplot(teste, aes(x = reorder(Q14, median(TOTAL)), y = TOTAL)) +
   geom_boxplot() +
     xlab("Estratos") + 
     ylab("Pontuação total dos candidatos") +
